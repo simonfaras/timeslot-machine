@@ -12,11 +12,10 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .day {
-  padding: 0.75rem 1rem 1rem 1rem;
+  padding: 1rem;
   border-radius: 4px;
   border: 1px solid #282c34;
   box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
@@ -36,10 +35,6 @@
   font-weight: 400;
 }
 
-.summary-wrapper {
-  display: flex;
-}
-
 .summary {
   display: block;
   margin-left: 1rem;
@@ -49,33 +44,8 @@
 }
 
 .entry {
-  position: relative;
   display: flex;
   margin-top: 0.5rem;
-}
-
-.entry-controls {
-  visibility: hidden;
-  position: absolute;
-  right: 0;
-}
-
-button.entry-control {
-  height: 1rem;
-  width: 1rem;
-  margin-left: 0.5rem;
-}
-
-.entry-control.edit {
-  background-color: green;
-}
-
-.entry-control.delete {
-  background-color: red;
-}
-
-.entry:hover .entry-controls {
-  visibility: visible;
 }
 
 .timespan {
@@ -86,14 +56,10 @@ button.entry-control {
   padding: 0 0.25rem;
 }
 
-input {
+input[type="time"] {
   font-size: 1rem;
   border: none;
   background-color: transparent;
-}
-
-input:focus {
-  outline: none;
 }
 
 input[type="time"]::-webkit-datetime-edit-hour-field,
@@ -104,8 +70,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: none;
 }
 
-input[type="text"] {
-  padding: 0;
+input[type="time"]:focus {
+  outline: none;
 }
 
 .description {
@@ -118,24 +84,4 @@ input[type="text"] {
 
 .entry-summary {
   font-size: 0.825rem;
-}
-
-.add-today {
-  margin-top: 1rem;
-}
-
-.controls-wrapper {
-  position: absolute;
-  right: -20px;
-}
-
-.controls {
-  display: block;
-  position: absolute;
-  left: 0px;
-}
-
-.input-wrapper {
-  display: flex;
-  margin-top: 0.5rem;
 }
