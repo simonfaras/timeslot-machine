@@ -120,7 +120,9 @@ input[type="text"] {
   font-size: 0.825rem;
 }
 
-.add-today {
+.add-day-wrapper {
+  display: flex;
+  justify-content: flex-end;
   margin-top: 1rem;
 }
 

@@ -71,6 +71,9 @@ const App = () => {
   );
   const [days, setDays] = useStorage([], "days", parseDays);
   const [editTimeslot, setEditTimeslot] = useState(null);
+  const [addDayDate, setAddDayDate] = useState(
+    formatDate(new Date(Date.now()), "yyyy-MM-dd")
+  );
 
   const updateSettings = (property, value) =>
     setSettings((current) => ({
@@ -163,15 +166,13 @@ const App = () => {
       setDays([]);
     }
   };
-  const today = new Date(Date.now());
-  const isToday = (date) =>
-    today.getFullYear() === date.getFullYear() &&
-    today.getMonth() === date.getMonth() &&
-    today.getDate() === date.getDate();
 
   const isEditEntry = (date, timeslotIndex) =>
     date === editTimeslot?.date &&
     timeslotIndex === editTimeslot?.timeslotIndex;
+
+  const hasDay = (date) =>
+    days.some((day) => formatDate(day.date, "yyyy-MM-dd") === date);
 
   return (
     <div className="root">
@@ -273,11 +274,24 @@ const App = () => {
             )}
           </div>
         ))}
-        {!days.some(({ date }) => isToday(date)) && (
-          <button className="add-today" onClick={() => addDay(today)}>
-            {formatEntryHeading(today)}
+        {/*{!days.some(({ date }) => isToday(date)) && (*/}
+        {/*  <button className="add-today" onClick={() => addDay(today)}>*/}
+        {/*    {formatEntryHeading(today)}*/}
+        {/*  </button>*/}
+        {/*)}*/}
+        <div className="add-day-wrapper">
+          <input
+            type="date"
+            value={addDayDate}
+            onChange={(e) => setAddDayDate(e.target.value)}
+          />
+          <button
+            onClick={() => addDay(new Date(addDayDate))}
+            disabled={hasDay(addDayDate)}
+          >
+            Lägg till
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
