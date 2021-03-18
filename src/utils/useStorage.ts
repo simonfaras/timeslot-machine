@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 
-const defaultParse = (data) => data;
+type Parse = <TValue>(raw: any) => TValue;
 
-const useStorage = (initialValue, key, parse = defaultParse) => {
+const defaultParse: Parse = (data) => data;
+
+const useStorage = <TValue>(
+  initialValue: TValue,
+  key: string,
+  parse: Parse = defaultParse
+) => {
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
@@ -16,7 +22,7 @@ const useStorage = (initialValue, key, parse = defaultParse) => {
     localStorage.setItem(key, JSON.stringify(value));
   }, [value, setValue, key]);
 
-  return [value, setValue];
+  return [value, setValue] as const;
 };
 
 export default useStorage;
