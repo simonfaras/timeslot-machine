@@ -1,10 +1,10 @@
 import { useState } from "react";
-import "./App.css";
+
 import formatDate from "date-fns/format";
 import parseISODate from "date-fns/parseISO";
 import addDate from "date-fns/add";
-import useStorage from "./utils/useStorage";
-import EntryInput from "./components/EntryInput";
+import useStorage from "../src/utils/useStorage";
+import TimeslotInput, { Timeslot } from "../src/components/TimeslotInput";
 
 const weekdays = [
   "Söndag",
@@ -16,27 +16,48 @@ const weekdays = [
   "Lördag",
 ];
 
-const formatEntryHeading = (date) =>
+interface EditTimeslot extends Partial<Timeslot> {
+  date: Date;
+  timeslotIndex: number;
+}
+
+interface Day {
+  date: Date;
+  timeslots: Timeslot[];
+}
+
+const initialSettings = {
+  lunchDuration: 30,
+  workdayHours: 8,
+};
+
+type Settings = typeof initialSettings;
+
+const formatEntryHeading = (date: Date) =>
   `${weekdays[date.getDay()]} - ${formatDate(date, "d/M")}`;
 
-const getTimeslotsSum = (timeslots) => {
+const getTimeslotsSum = (timeslots: Timeslot[]) => {
   const getTimespan = ({ start, end }) => {
     const startDate = new Date(`2020-01-01 ${start}`);
     const endDate = new Date(`2020-01-01 ${end}`);
 
-    return endDate - startDate;
+    return endDate.getTime() - startDate.getTime();
   };
 
   return timeslots.reduce((sum, timeslot) => sum + getTimespan(timeslot), 0);
 };
 
-const formatTimeslot = (timeslot) => {
+const formatTimeslot = (timeslot: number) => {
   const minutes = timeslot / 1000 / 60;
 
   return `${Math.floor(minutes / 60)} tim ${minutes % 60} min`;
 };
 
-const isLastInstanceOfActivityForDay = (timeslots, timeslot, index) => {
+const isLastInstanceOfActivityForDay = (
+  timeslots: Timeslot[],
+  timeslot: Timeslot,
+  index: number
+) => {
   const lastIndex = timeslots
     .map(({ activity }) => activity)
     .lastIndexOf(timeslot.activity);
@@ -44,7 +65,7 @@ const isLastInstanceOfActivityForDay = (timeslots, timeslot, index) => {
   return lastIndex === index;
 };
 
-const getTotalTimeForActivity = (activity, timeslots) =>
+const getTotalTimeForActivity = (activity: string, timeslots: Timeslot[]) =>
   getTimeslotsSum(
     timeslots.filter((timeslot) => timeslot.activity === activity)
   ) /
@@ -52,7 +73,7 @@ const getTotalTimeForActivity = (activity, timeslots) =>
   60 /
   60;
 
-const isLunchTimeslot = (timeslot) =>
+const isLunchTimeslot = (timeslot: Timeslot) =>
   timeslot.activity.toLowerCase() === "lunch";
 
 const parseDays = (days) =>
@@ -62,29 +83,23 @@ const parseDays = (days) =>
   }));
 
 const App = () => {
-  const [settings, setSettings] = useStorage(
-    {
-      lunchDuration: "30",
-      workdayHours: "8",
-    },
-    "settings"
-  );
-  const [days, setDays] = useStorage([], "days", parseDays);
-  const [editTimeslot, setEditTimeslot] = useState(null);
+  const [settings, setSettings] = useStorage(initialSettings, "settings");
+  const [days, setDays] = useStorage<Day[]>([], "days", parseDays);
+  const [editTimeslot, setEditTimeslot] = useState<EditTimeslot>(null);
   const [addDayDate, setAddDayDate] = useState(
     formatDate(new Date(Date.now()), "yyyy-MM-dd")
   );
 
-  const updateSettings = (property, value) =>
+  const updateSettings = (property: keyof Settings, value: any) =>
     setSettings((current) => ({
       ...current,
       [property]: value,
     }));
 
-  const addDay = (date) =>
+  const addDay = (date: Date) =>
     setDays((current) => [...current, { date, timeslots: [] }]);
 
-  const addTimeslot = (dayIndex, timeslot) => {
+  const addTimeslot = (dayIndex: number, timeslot: Timeslot) => {
     setDays((current) => [
       ...current.slice(0, dayIndex),
       {
@@ -95,7 +110,11 @@ const App = () => {
     ]);
   };
 
-  const updateTimeslot = (dayIndex, timeslotIndex, timeslot) => {
+  const updateTimeslot = (
+    dayIndex: number,
+    timeslotIndex: number,
+    timeslot: Timeslot
+  ) => {
     setDays((current) => [
       ...current.slice(0, dayIndex),
       {
@@ -111,7 +130,7 @@ const App = () => {
     setEditTimeslot(null);
   };
 
-  const deleteTimeslot = (dayIndex, timeslotIndex) => {
+  const deleteTimeslot = (dayIndex: number, timeslotIndex: number) => {
     setDays((current) => [
       ...current.slice(0, dayIndex),
       {
@@ -125,7 +144,7 @@ const App = () => {
     ]);
   };
 
-  const calcEndTime = (date, timeslotsArray) => {
+  const calcEndTime = (date: Date, timeslotsArray: Timeslot[]) => {
     const timeslots = timeslotsArray.slice(0);
     const dateString = formatDate(date, "yyyy-MM-dd");
 
@@ -142,14 +161,14 @@ const App = () => {
       });
     }
 
-    let lunchDuration = Number.parseInt(settings.lunchDuration);
+    let lunchDuration = settings.lunchDuration;
     const lunchTimeslot = timeslots.find((timeslot) =>
       isLunchTimeslot(timeslot)
     );
     if (lunchTimeslot) {
       lunchDuration =
-        (new Date(`${dateString} ${lunchTimeslot.end}`) -
-          new Date(`${dateString} ${lunchTimeslot.start}`)) /
+        (new Date(`${dateString} ${lunchTimeslot.end}`).getTime() -
+          new Date(`${dateString} ${lunchTimeslot.start}`).getTime()) /
         1000 /
         60;
     }
@@ -189,7 +208,10 @@ const App = () => {
                 id="lunch-duration"
                 value={settings.lunchDuration}
                 onChange={(e) =>
-                  updateSettings("lunchDuration", e.target.value)
+                  updateSettings(
+                    "lunchDuration",
+                    Number.parseInt(e.target.value)
+                  )
                 }
               />
             </div>
@@ -205,7 +227,7 @@ const App = () => {
           </div>
         </div>
         {days.map(({ date, timeslots }, dayIndex, daysArray) => (
-          <div className="day" key={date}>
+          <div className="day" key={date.toISOString()}>
             <div className="header">
               <span className="title">{formatEntryHeading(date)}</span>
               <div className="summary-wrapper">
@@ -258,7 +280,7 @@ const App = () => {
                   </div>
                 </div>
               ) : (
-                <EntryInput
+                <TimeslotInput
                   key={timeslot.start}
                   onChange={(timeslot) =>
                     updateTimeslot(dayIndex, timeslotIndex, timeslot)
@@ -268,7 +290,7 @@ const App = () => {
               )
             )}
             {dayIndex === daysArray.length - 1 && (
-              <EntryInput
+              <TimeslotInput
                 onChange={(timeslot) => addTimeslot(dayIndex, timeslot)}
               />
             )}
