@@ -1,0 +1,8 @@
+query AllDays {
+  allDays {
+    data {
+      _id
+      date
+    }
+  }
+}

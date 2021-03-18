@@ -1,0 +1,34 @@
+Lambda(
+  "values",
+  Equals(
+    Identity(),
+    Select(
+      ["data", "owner"],
+      Get(Ref(Collection("Days"), Select("day", Get(Var("values")))))
+    )
+  )
+)
+
+
+Lambda(
+  ["oldData", "newData"],
+  And(
+    Equals(
+      Identity(),
+      Select(
+        ["data", "owner"],
+        Get(Ref(Collection("Days"), Select("day", Get(Var("oldData")))))
+      )
+    ),
+    Equals(
+      Select(
+        ["data", "owner"],
+        Get(Ref(Collection("Days"), Select("day", Get(Var("oldData")))))
+      ),
+      Select(
+        ["data", "owner"],
+        Get(Ref(Collection("Days"), Select("day", Get(Var("newData")))))
+      )
+    )
+  )
+)

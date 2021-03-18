@@ -1,0 +1,4 @@
+CreateCollection({ name: 'accounts' })
+CreateCollection({ name: 'sessions' })
+CreateCollection({ name: 'users' })
+CreateCollection({ name: 'verification_requests' })

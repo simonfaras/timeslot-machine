@@ -1,0 +1,16 @@
+Update(Function("create_period"), {
+  body: Query(
+  Lambda(
+    ["input"],
+    Create(Collection("periods"), {
+      data: {
+        owner: CurrentIdentity(),
+        settings: {
+          lunchDurationMinutes: Select("lunchDurationMinutes", Var("input")),
+          worktimePercentage: Select("worktimePercentage", Var("input"))
+        }
+      }
+    })
+  )
+)
+})

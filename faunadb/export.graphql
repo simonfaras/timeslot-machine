@@ -1,0 +1,69 @@
+type User @collection(name: "users") {
+  name: String!
+  email: String!
+  image: String
+  createdAt: Time!
+  updatedAt: Time!
+  defaultSettings: Settings
+}
+
+type Period @collection(name: "periods") {
+  days: [Day!]! @relation
+  settings: Settings!
+  owner: User!
+}
+
+type Settings @embedded {
+  worktimePercentage: Float!
+  lunchDurationMinutes: Int!
+}
+
+type Day @collection(name: "days") {
+  period: Period!
+  timeslots: [Timeslot!]! @relation
+  date: Date!
+  owner: User!
+}
+
+type Timeslot @collection(name: "timeslots") {
+  day: Day!
+  start: Time!
+  end: Time!
+  activity: String!
+  owner: User!
+}
+
+input CreatePeriodInput {
+  lunchDurationMinutes: Int!
+  worktimePercentage: Float!
+}
+
+input CreateDayInput {
+  date: Date!
+  period: ID!
+}
+
+input CreateTimeslotInput {
+  start: Time!
+  end: Time!
+  day: ID!
+  activity: String!
+}
+
+input UpdateUserInput {
+  worktimePercentage: Float!
+  lunchDurationMinutes: Int!
+}
+
+type Query {
+  getAllPeriods: [Period!]!
+}
+
+type Mutation {
+  updateUser(id: ID!, data: UpdateUserInput): User @resolver(name: "update_user")
+  createPeriod(data: CreatePeriodInput): Period!
+    @resolver(name: "create_period")
+  createDay(data: CreateDayInput!): Day! @resolver(name: "create_day")
+  createTimeslot(data: CreateTimeslotInput!): Timeslot!
+    @resolver(name: "create_timeslot")
+}

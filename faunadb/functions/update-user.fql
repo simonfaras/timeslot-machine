@@ -1,0 +1,15 @@
+Update(Function("create_timeslot"), {
+  body: Query(
+          Lambda(
+            ["id", "data"],
+            Update(Ref(Collection("users"), Var("id")), {
+              data: {
+                defaultSettings: {
+                  worktimePercentage: Select("worktimePercentage", Var("data")),
+                  lunchDurationMinutes: Select("lunchDurationMinutes", Var("data"))
+                }
+              }
+            })
+          )
+        )
+})

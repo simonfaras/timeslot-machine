@@ -1,0 +1,14 @@
+Update(Function("create_day"), {
+  body: Query(
+  Lambda(
+    ["input"],
+    Create(Collection("days"), {
+      data: {
+        owner: CurrentIdentity(),
+        period: Ref(Collection("periods"), Select("period", Var("input"))),
+        date: Select("date", Var("input"))
+      }
+    })
+  )
+)
+})

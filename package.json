@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ./**"
+    "lint": "eslint ./**",
+    "generate": "graphql-codegen --require dotenv/config"
   },
   "lint-staged": {
     "*.{ts,tsx,js}": "eslint --fix"
@@ -17,16 +18,29 @@
     }
   },
   "dependencies": {
+    "@apollo/client": "^3.3.12",
+    "@next-auth/fauna-adapter": "0.0.1-pr.5.32",
     "date-fns": "^2.19.0",
+    "faunadb": "^4.1.1",
+    "graphql": "^15.5.0",
     "next": "10.0.9",
+    "next-auth": "^3.13.2",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^1.21.3",
+    "@graphql-codegen/schema-ast": "^1.18.1",
+    "@graphql-codegen/typed-document-node": "^1.18.4",
+    "@graphql-codegen/typescript": "^1.21.1",
+    "@graphql-codegen/typescript-operations": "^1.17.15",
+    "@graphql-typed-document-node/core": "^3.1.0",
+    "@types/next-auth": "^3.7.2",
     "@types/node": "^14.14.35",
     "@types/react": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
+    "dotenv": "^8.2.0",
     "eslint": "^7.22.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-react": "^7.22.0",

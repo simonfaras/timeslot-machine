@@ -1,0 +1,233 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+"""'Activity' input values"""
+input ActivityInput {
+  name: String!
+}
+input CreateDayInput {
+  date: Date!
+}
+input CreateTimeslotInput {
+  start: Time!
+  end: Time!
+  day: ID!
+  activity: String!
+}
+"""'Day' input values"""
+input DayInput {
+  timeslots: [ID]
+  date: Date!
+  owner: DayOwnerRelation
+}
+"""Allow manipulating the relationship between the types 'Day' and 'User' using the field 'Day.owner'."""
+input DayOwnerRelation {
+  """Create a document of type 'User' and associate it with the current document."""
+  create: UserInput
+  """Connect a document of type 'User' with the current document using its ID."""
+  connect: ID
+}
+type Mutation {
+  """Update an existing document in the collection of 'User'"""
+  updateUser(
+    """The 'User' document's ID"""
+    id: ID!
+    """'User' input values"""
+    data: UserInput!
+  ): User
+  """Create a new document in the collection of 'User'"""
+  createUser(
+    """'User' input values"""
+    data: UserInput!
+  ): User!
+  """Create a new document in the collection of 'Activity'"""
+  createActivity(
+    """'Activity' input values"""
+    data: ActivityInput!
+  ): Activity!
+  """Delete an existing document in the collection of 'Day'"""
+  deleteDay(
+    """The 'Day' document's ID"""
+    id: ID!
+  ): Day
+  """Update an existing document in the collection of 'Setting'"""
+  updateSetting(
+    """The 'Setting' document's ID"""
+    id: ID!
+    """'Setting' input values"""
+    data: SettingInput!
+  ): Setting
+  """Update an existing document in the collection of 'Timeslot'"""
+  updateTimeslot(
+    """The 'Timeslot' document's ID"""
+    id: ID!
+    """'Timeslot' input values"""
+    data: TimeslotInput!
+  ): Timeslot
+  createDay(data: CreateDayInput!): Day!
+  """Delete an existing document in the collection of 'Timeslot'"""
+  deleteTimeslot(
+    """The 'Timeslot' document's ID"""
+    id: ID!
+  ): Timeslot
+  """Create a new document in the collection of 'Setting'"""
+  createSetting(
+    """'Setting' input values"""
+    data: SettingInput!
+  ): Setting!
+  """Delete an existing document in the collection of 'Setting'"""
+  deleteSetting(
+    """The 'Setting' document's ID"""
+    id: ID!
+  ): Setting
+  createTimeslot(data: CreateTimeslotInput!): Timeslot!
+  """Update an existing document in the collection of 'Activity'"""
+  updateActivity(
+    """The 'Activity' document's ID"""
+    id: ID!
+    """'Activity' input values"""
+    data: ActivityInput!
+  ): Activity
+  """Delete an existing document in the collection of 'User'"""
+  deleteUser(
+    """The 'User' document's ID"""
+    id: ID!
+  ): User
+  """Update an existing document in the collection of 'Day'"""
+  updateDay(
+    """The 'Day' document's ID"""
+    id: ID!
+    """'Day' input values"""
+    data: DayInput!
+  ): Day
+  """Delete an existing document in the collection of 'Activity'"""
+  deleteActivity(
+    """The 'Activity' document's ID"""
+    id: ID!
+  ): Activity
+}
+"""'Setting' input values"""
+input SettingInput {
+  lunchDuration: Int
+  worktimePercentage: Float
+}
+"""Allow manipulating the relationship between the types 'Timeslot' and 'Day' using the field 'Timeslot.day'."""
+input TimeslotDayRelation {
+  """Create a document of type 'Day' and associate it with the current document."""
+  create: DayInput
+  """Connect a document of type 'Day' with the current document using its ID."""
+  connect: ID
+}
+"""'Timeslot' input values"""
+input TimeslotInput {
+  start: Time!
+  end: Time!
+  day: TimeslotDayRelation
+  activity: String!
+}
+"""'User' input values"""
+input UserInput {
+  name: String!
+  email: String!
+  image: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+type Activity {
+  """The document's ID."""
+  _id: ID!
+  """The document's timestamp."""
+  _ts: Long!
+  name: String!
+}
+scalar Date
+type Day {
+  """The document's ID."""
+  _id: ID!
+  date: Date!
+  owner: User!
+  timeslots: [Timeslot]
+  """The document's timestamp."""
+  _ts: Long!
+}
+"""The pagination object for elements of type 'Day'."""
+type DayPage {
+  """The elements of type 'Day' in this page."""
+  data: [Day]!
+  """A cursor for elements coming after the current page."""
+  after: String
+  """A cursor for elements coming before the current page."""
+  before: String
+}
+type Query {
+  """Find a document from the collection of 'Setting' by its id."""
+  findSettingByID(
+    """The 'Setting' document's ID"""
+    id: ID!
+  ): Setting
+  """Find a document from the collection of 'Day' by its id."""
+  findDayByID(
+    """The 'Day' document's ID"""
+    id: ID!
+  ): Day
+  allDays(
+    """The number of items to return per page."""
+    _size: Int
+    """The pagination cursor."""
+    _cursor: String
+  ): DayPage!
+  """Find a document from the collection of 'Activity' by its id."""
+  findActivityByID(
+    """The 'Activity' document's ID"""
+    id: ID!
+  ): Activity
+  """Find a document from the collection of 'User' by its id."""
+  findUserByID(
+    """The 'User' document's ID"""
+    id: ID!
+  ): User
+  """Find a document from the collection of 'Timeslot' by its id."""
+  findTimeslotByID(
+    """The 'Timeslot' document's ID"""
+    id: ID!
+  ): Timeslot
+}
+type Setting {
+  """The document's ID."""
+  _id: ID!
+  """The document's timestamp."""
+  _ts: Long!
+  lunchDuration: Int
+  worktimePercentage: Float
+}
+scalar Time
+type Timeslot {
+  """The document's ID."""
+  _id: ID!
+  end: Time!
+  start: Time!
+  activity: String!
+  day: Day!
+  """The document's timestamp."""
+  _ts: Long!
+}
+type User {
+  name: String!
+  updatedAt: Time!
+  email: String!
+  image: String
+  """The document's ID."""
+  _id: ID!
+  createdAt: Time!
+  """The document's timestamp."""
+  _ts: Long!
+}
+"""The `Long` scalar type represents non-fractional signed whole numeric values. Long can represent values between -(2^63) and 2^63 - 1."""
+scalar Long
+directive @embedded on OBJECT
+directive @collection(name: String!) on OBJECT
+directive @index(name: String!) on FIELD_DEFINITION
+directive @resolver(name: String, paginated: Boolean! = false) on FIELD_DEFINITION
+directive @relation(name: String) on FIELD_DEFINITION
+directive @unique(index: String) on FIELD_DEFINITION

@@ -1,0 +1,17 @@
+CreateIndex({
+  name: "day_unique",
+  unique: true,
+  serialized: true,
+  source: Collection("days"),
+  values: [
+    {
+      field: ["data", "date"]
+    },
+    {
+      field: ["data", "owner"]
+    },
+    {
+      field: ["data", "period"]
+    }
+  ]
+})

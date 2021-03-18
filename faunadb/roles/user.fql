@@ -1,0 +1,202 @@
+{
+  ref: Role("User"),
+  ts: 1617480597565000,
+  name: "User",
+  privileges: [
+    {
+      resource: Collection("periods"),
+      actions: {
+        read: Query(
+          Lambda(
+            "ref",
+            Equals(
+              CurrentIdentity(),
+              Select(["data", "owner"], Get(Var("ref")))
+            )
+          )
+        ),
+        write: Query(
+          Lambda(
+            ["oldData", "newData"],
+            And(
+              Equals(
+                CurrentIdentity(),
+                Select(["data", "owner"], Var("oldData"))
+              ),
+              Equals(
+                Select(["data", "owner"], Var("oldData")),
+                Select(["data", "owner"], Var("newData"))
+              )
+            )
+          )
+        ),
+        create: Query(
+          Lambda(
+            "values",
+            Equals(CurrentIdentity(), Select(["data", "owner"], Var("values")))
+          )
+        ),
+        delete: false,
+        history_read: false,
+        history_write: false,
+        unrestricted_read: false
+      }
+    },
+    {
+      resource: Collection("days"),
+      actions: {
+        read: Query(
+          Lambda(
+            "ref",
+            Equals(
+              CurrentIdentity(),
+              Select(["data", "owner"], Get(Var("ref")))
+            )
+          )
+        ),
+        write: false,
+        create: Query(
+          Lambda(
+            "values",
+            Let(
+              {
+                periodOwner: Select(
+                  ["data", "owner"],
+                  Get(Select(["data", "period"], Var("values")))
+                )
+              },
+              Equals(CurrentIdentity(), Var("periodOwner"))
+            )
+          )
+        ),
+        delete: false,
+        history_read: false,
+        history_write: false,
+        unrestricted_read: false
+      }
+    },
+    {
+      resource: Collection("users"),
+      actions: {
+        read: Query(
+          Lambda(
+            "ref",
+            Equals(CurrentIdentity(), Select(["ref"], Get(Var("ref"))))
+          )
+        ),
+        write: Query(
+          Lambda(
+            ["oldData", "newData", "ref"],
+            Equals(CurrentIdentity(), Select("ref", Get(Var("ref"))))
+          )
+        ),
+        create: false,
+        delete: false,
+        history_read: false,
+        history_write: false,
+        unrestricted_read: false
+      }
+    },
+    {
+      resource: Collection("timeslots"),
+      actions: {
+        read: Query(
+          Lambda(
+            "ref",
+            Equals(Identity(), Select(["data", "owner"], Get(Var("ref"))))
+          )
+        ),
+        write: Query(
+          Lambda(
+            ["oldData", "newData"],
+            And(
+              Equals(
+                CurrentIdentity(),
+                Select(["data", "owner"], Var("oldData"))
+              ),
+              Equals(
+                Select(["data", "owner"], Var("oldData")),
+                Select(["data", "owner"], Var("newData"))
+              )
+            )
+          )
+        ),
+        create: Query(
+          Lambda(
+            "values",
+            Let(
+              {
+                dayOwner: Select(
+                  ["data", "owner"],
+                  Get(Select(["data", "day"], Var("values")))
+                )
+              },
+              Equals(CurrentIdentity(), Var("dayOwner"))
+            )
+          )
+        ),
+        delete: false,
+        history_read: false,
+        history_write: false,
+        unrestricted_read: false
+      }
+    },
+    {
+      resource: Index("day_unique"),
+      actions: {
+        unrestricted_read: false,
+        read: true
+      }
+    },
+    {
+      resource: Ref(Ref("functions"), "create_day"),
+      actions: {
+        call: true
+      }
+    },
+    {
+      resource: Ref(Ref("functions"), "create_timeslot"),
+      actions: {
+        call: true
+      }
+    },
+    {
+      resource: Ref(Ref("functions"), "create_period"),
+      actions: {
+        call: true
+      }
+    },
+    {
+      resource: Index("day_period_by_period"),
+      actions: {
+        unrestricted_read: false,
+        read: true
+      }
+    },
+    {
+      resource: Index("day_timeslots_by_day"),
+      actions: {
+        unrestricted_read: false,
+        read: true
+      }
+    },
+    {
+      resource: Index("getAllPeriods"),
+      actions: {
+        unrestricted_read: false,
+        read: true
+      }
+    },
+    {
+      resource: Ref(Ref("functions"), "update_user"),
+      actions: {
+        call: true
+      }
+    }
+  ],
+  membership: [
+    {
+      resource: Collection("users")
+    }
+  ]
+}

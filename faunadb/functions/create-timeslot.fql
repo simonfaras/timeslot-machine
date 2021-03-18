@@ -1,0 +1,16 @@
+Update(Function("create_timeslot"), {
+  body: Query(
+          Lambda(
+            ["input"],
+            Create(Collection("timeslots"), {
+              data: {
+                owner: CurrentIdentity(),
+                day: Ref(Collection("days"), Select("day", Var("input"))),
+                end: Select("end", Var("input")),
+                start: Select("start", Var("input")),
+                activity: Select("activity", Var("input"))
+              }
+            })
+          )
+        )
+})

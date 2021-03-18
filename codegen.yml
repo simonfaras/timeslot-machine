@@ -1,0 +1,16 @@
+schema:
+  - https://graphql.fauna.com/graphql:
+      headers:
+        Authorization: Bearer ${FAUNA_SERVER_KEY}
+documents: ./pages/**/*.graphql
+generates:
+  ./src/graphql/schema.graphql:
+    plugins:
+      - schema-ast
+    config:
+      includeDirectives: true
+  ./src/graphql/index.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
