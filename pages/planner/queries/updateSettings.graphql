@@ -1,0 +1,20 @@
+mutation UpdateSettings(
+  $id: ID!
+  $worktimePercentage: Float!
+  $lunchDurationMinutes: Int!
+) {
+  updatePeriod(
+    id: $id
+    data: {
+      settings: {
+        worktimePercentage: $worktimePercentage
+        lunchDurationMinutes: $lunchDurationMinutes
+      }
+    }
+  ) {
+    settings {
+      worktimePercentage
+      lunchDurationMinutes
+    }
+  }
+}

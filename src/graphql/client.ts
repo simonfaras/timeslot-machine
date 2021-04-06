@@ -16,9 +16,11 @@ const authLink = (token) => {
   });
 };
 
+const cache = new InMemoryCache();
+
 export const createClient = (token) =>
   new ApolloClient({
     ssrMode: typeof window === "undefined",
     link: authLink(token).concat(httpLink),
-    cache: new InMemoryCache(),
+    cache,
   });

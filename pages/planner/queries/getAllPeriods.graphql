@@ -1,0 +1,13 @@
+query AllPeriods {
+  getAllPeriods {
+    data {
+      _id
+      days {
+        data {
+          _id
+          date
+        }
+      }
+    }
+  }
+}

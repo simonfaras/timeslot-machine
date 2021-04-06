@@ -1,0 +1,15 @@
+mutation AddTimeslot(
+  $day: ID!
+  $start: Time!
+  $end: Time!
+  $activity: String!
+) {
+  createTimeslot(
+    data: { day: $day, start: $start, end: $end, activity: $activity }
+  ) {
+    _id
+    start
+    end
+    activity
+  }
+}

@@ -2,12 +2,13 @@ schema {
   query: Query
   mutation: Mutation
 }
-"""'Activity' input values"""
-input ActivityInput {
-  name: String!
-}
 input CreateDayInput {
   date: Date!
+  period: ID!
+}
+input CreatePeriodInput {
+  lunchDurationMinutes: Int!
+  worktimePercentage: Float!
 }
 input CreateTimeslotInput {
   start: Time!
@@ -17,7 +18,8 @@ input CreateTimeslotInput {
 }
 """'Day' input values"""
 input DayInput {
-  timeslots: [ID]
+  period: DayPeriodRelation
+  timeslots: DayTimeslotsRelation
   date: Date!
   owner: DayOwnerRelation
 }
@@ -28,36 +30,34 @@ input DayOwnerRelation {
   """Connect a document of type 'User' with the current document using its ID."""
   connect: ID
 }
+"""Allow manipulating the relationship between the types 'Day' and 'Period' using the field 'Day.period'."""
+input DayPeriodRelation {
+  """Create a document of type 'Period' and associate it with the current document."""
+  create: PeriodInput
+  """Connect a document of type 'Period' with the current document using its ID."""
+  connect: ID
+}
+"""Allow manipulating the relationship between the types 'Day' and 'Timeslot'."""
+input DayTimeslotsRelation {
+  """Create one or more documents of type 'Timeslot' and associate them with the current document."""
+  create: [TimeslotInput]
+  """Connect one or more documents of type 'Timeslot' with the current document using their IDs."""
+  connect: [ID]
+  """Disconnect the given documents of type 'Timeslot' from the current document using their IDs."""
+  disconnect: [ID]
+}
 type Mutation {
-  """Update an existing document in the collection of 'User'"""
-  updateUser(
-    """The 'User' document's ID"""
-    id: ID!
-    """'User' input values"""
-    data: UserInput!
-  ): User
+  updateUser(id: ID!, data: UpdateUserInput): User
   """Create a new document in the collection of 'User'"""
   createUser(
     """'User' input values"""
     data: UserInput!
   ): User!
-  """Create a new document in the collection of 'Activity'"""
-  createActivity(
-    """'Activity' input values"""
-    data: ActivityInput!
-  ): Activity!
   """Delete an existing document in the collection of 'Day'"""
   deleteDay(
     """The 'Day' document's ID"""
     id: ID!
   ): Day
-  """Update an existing document in the collection of 'Setting'"""
-  updateSetting(
-    """The 'Setting' document's ID"""
-    id: ID!
-    """'Setting' input values"""
-    data: SettingInput!
-  ): Setting
   """Update an existing document in the collection of 'Timeslot'"""
   updateTimeslot(
     """The 'Timeslot' document's ID"""
@@ -71,24 +71,13 @@ type Mutation {
     """The 'Timeslot' document's ID"""
     id: ID!
   ): Timeslot
-  """Create a new document in the collection of 'Setting'"""
-  createSetting(
-    """'Setting' input values"""
-    data: SettingInput!
-  ): Setting!
-  """Delete an existing document in the collection of 'Setting'"""
-  deleteSetting(
-    """The 'Setting' document's ID"""
+  createPeriod(data: CreatePeriodInput): Period!
+  """Delete an existing document in the collection of 'Period'"""
+  deletePeriod(
+    """The 'Period' document's ID"""
     id: ID!
-  ): Setting
+  ): Period
   createTimeslot(data: CreateTimeslotInput!): Timeslot!
-  """Update an existing document in the collection of 'Activity'"""
-  updateActivity(
-    """The 'Activity' document's ID"""
-    id: ID!
-    """'Activity' input values"""
-    data: ActivityInput!
-  ): Activity
   """Delete an existing document in the collection of 'User'"""
   deleteUser(
     """The 'User' document's ID"""
@@ -101,16 +90,40 @@ type Mutation {
     """'Day' input values"""
     data: DayInput!
   ): Day
-  """Delete an existing document in the collection of 'Activity'"""
-  deleteActivity(
-    """The 'Activity' document's ID"""
+  """Update an existing document in the collection of 'Period'"""
+  updatePeriod(
+    """The 'Period' document's ID"""
     id: ID!
-  ): Activity
+    """'Period' input values"""
+    data: PeriodInput!
+  ): Period
 }
-"""'Setting' input values"""
-input SettingInput {
-  lunchDuration: Int
-  worktimePercentage: Float
+"""Allow manipulating the relationship between the types 'Period' and 'Day'."""
+input PeriodDaysRelation {
+  """Create one or more documents of type 'Day' and associate them with the current document."""
+  create: [DayInput]
+  """Connect one or more documents of type 'Day' with the current document using their IDs."""
+  connect: [ID]
+  """Disconnect the given documents of type 'Day' from the current document using their IDs."""
+  disconnect: [ID]
+}
+"""'Period' input values"""
+input PeriodInput {
+  days: PeriodDaysRelation
+  settings: SettingsInput!
+  owner: PeriodOwnerRelation
+}
+"""Allow manipulating the relationship between the types 'Period' and 'User' using the field 'Period.owner'."""
+input PeriodOwnerRelation {
+  """Create a document of type 'User' and associate it with the current document."""
+  create: UserInput
+  """Connect a document of type 'User' with the current document using its ID."""
+  connect: ID
+}
+"""'Settings' input values"""
+input SettingsInput {
+  worktimePercentage: Float!
+  lunchDurationMinutes: Int!
 }
 """Allow manipulating the relationship between the types 'Timeslot' and 'Day' using the field 'Timeslot.day'."""
 input TimeslotDayRelation {
@@ -121,10 +134,22 @@ input TimeslotDayRelation {
 }
 """'Timeslot' input values"""
 input TimeslotInput {
+  day: TimeslotDayRelation
   start: Time!
   end: Time!
-  day: TimeslotDayRelation
   activity: String!
+  owner: TimeslotOwnerRelation
+}
+"""Allow manipulating the relationship between the types 'Timeslot' and 'User' using the field 'Timeslot.owner'."""
+input TimeslotOwnerRelation {
+  """Create a document of type 'User' and associate it with the current document."""
+  create: UserInput
+  """Connect a document of type 'User' with the current document using its ID."""
+  connect: ID
+}
+input UpdateUserInput {
+  worktimePercentage: Float!
+  lunchDurationMinutes: Int!
 }
 """'User' input values"""
 input UserInput {
@@ -133,13 +158,7 @@ input UserInput {
   image: String
   createdAt: Time!
   updatedAt: Time!
-}
-type Activity {
-  """The document's ID."""
-  _id: ID!
-  """The document's timestamp."""
-  _ts: Long!
-  name: String!
+  defaultSettings: SettingsInput
 }
 scalar Date
 type Day {
@@ -147,7 +166,13 @@ type Day {
   _id: ID!
   date: Date!
   owner: User!
-  timeslots: [Timeslot]
+  timeslots(
+    """The number of items to return per page."""
+    _size: Int
+    """The pagination cursor."""
+    _cursor: String
+  ): TimeslotPage!
+  period: Period!
   """The document's timestamp."""
   _ts: Long!
 }
@@ -160,57 +185,81 @@ type DayPage {
   """A cursor for elements coming before the current page."""
   before: String
 }
-type Query {
-  """Find a document from the collection of 'Setting' by its id."""
-  findSettingByID(
-    """The 'Setting' document's ID"""
-    id: ID!
-  ): Setting
-  """Find a document from the collection of 'Day' by its id."""
-  findDayByID(
-    """The 'Day' document's ID"""
-    id: ID!
-  ): Day
-  allDays(
+type Period {
+  """The document's ID."""
+  _id: ID!
+  owner: User!
+  settings: Settings!
+  days(
     """The number of items to return per page."""
     _size: Int
     """The pagination cursor."""
     _cursor: String
   ): DayPage!
-  """Find a document from the collection of 'Activity' by its id."""
-  findActivityByID(
-    """The 'Activity' document's ID"""
+  """The document's timestamp."""
+  _ts: Long!
+}
+"""The pagination object for elements of type 'Period'."""
+type PeriodPage {
+  """The elements of type 'Period' in this page."""
+  data: [Period]!
+  """A cursor for elements coming after the current page."""
+  after: String
+  """A cursor for elements coming before the current page."""
+  before: String
+}
+type Query {
+  getAllPeriods(
+    """The number of items to return per page."""
+    _size: Int
+    """The pagination cursor."""
+    _cursor: String
+  ): PeriodPage!
+  """Find a document from the collection of 'Day' by its id."""
+  findDayByID(
+    """The 'Day' document's ID"""
     id: ID!
-  ): Activity
+  ): Day
   """Find a document from the collection of 'User' by its id."""
   findUserByID(
     """The 'User' document's ID"""
     id: ID!
   ): User
+  """Find a document from the collection of 'Period' by its id."""
+  findPeriodByID(
+    """The 'Period' document's ID"""
+    id: ID!
+  ): Period
   """Find a document from the collection of 'Timeslot' by its id."""
   findTimeslotByID(
     """The 'Timeslot' document's ID"""
     id: ID!
   ): Timeslot
 }
-type Setting {
-  """The document's ID."""
-  _id: ID!
-  """The document's timestamp."""
-  _ts: Long!
-  lunchDuration: Int
-  worktimePercentage: Float
+type Settings {
+  worktimePercentage: Float!
+  lunchDurationMinutes: Int!
 }
 scalar Time
 type Timeslot {
   """The document's ID."""
   _id: ID!
   end: Time!
+  owner: User!
   start: Time!
   activity: String!
   day: Day!
   """The document's timestamp."""
   _ts: Long!
+}
+"""The pagination object for elements of type 'Timeslot'."""
+type TimeslotPage {
+  """The elements of type 'Timeslot' in this page."""
+  data: [Timeslot]!
+  """A cursor for elements coming after the current page."""
+  after: String
+  """A cursor for elements coming before the current page."""
+  before: String
 }
 type User {
   name: String!
@@ -220,6 +269,7 @@ type User {
   """The document's ID."""
   _id: ID!
   createdAt: Time!
+  defaultSettings: Settings
   """The document's timestamp."""
   _ts: Long!
 }

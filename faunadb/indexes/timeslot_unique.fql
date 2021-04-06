@@ -1,0 +1,17 @@
+CreateIndex({
+  name: "timeslot_unique",
+  unique: true,
+  serialized: true,
+  source: "timeslots",
+  terms: [
+    {
+      field: ["data", "start"]
+    },
+    {
+      field: ["data", "end"]
+    },
+    {
+      field: ["data", "day"]
+    }
+  ]
+})

@@ -22,13 +22,14 @@ export type Scalars = {
 
 
 
-/** 'Activity' input values */
-export type ActivityInput = {
-  name: Scalars['String'];
-};
-
 export type CreateDayInput = {
   date: Scalars['Date'];
+  period: Scalars['ID'];
+};
+
+export type CreatePeriodInput = {
+  lunchDurationMinutes: Scalars['Int'];
+  worktimePercentage: Scalars['Float'];
 };
 
 export type CreateTimeslotInput = {
@@ -40,7 +41,8 @@ export type CreateTimeslotInput = {
 
 /** 'Day' input values */
 export type DayInput = {
-  timeslots?: Maybe<Array<Maybe<Scalars['ID']>>>;
+  period?: Maybe<DayPeriodRelation>;
+  timeslots?: Maybe<DayTimeslotsRelation>;
   date: Scalars['Date'];
   owner?: Maybe<DayOwnerRelation>;
 };
@@ -53,42 +55,52 @@ export type DayOwnerRelation = {
   connect?: Maybe<Scalars['ID']>;
 };
 
+/** Allow manipulating the relationship between the types 'Day' and 'Period' using the field 'Day.period'. */
+export type DayPeriodRelation = {
+  /** Create a document of type 'Period' and associate it with the current document. */
+  create?: Maybe<PeriodInput>;
+  /** Connect a document of type 'Period' with the current document using its ID. */
+  connect?: Maybe<Scalars['ID']>;
+};
+
+/** Allow manipulating the relationship between the types 'Day' and 'Timeslot'. */
+export type DayTimeslotsRelation = {
+  /** Create one or more documents of type 'Timeslot' and associate them with the current document. */
+  create?: Maybe<Array<Maybe<TimeslotInput>>>;
+  /** Connect one or more documents of type 'Timeslot' with the current document using their IDs. */
+  connect?: Maybe<Array<Maybe<Scalars['ID']>>>;
+  /** Disconnect the given documents of type 'Timeslot' from the current document using their IDs. */
+  disconnect?: Maybe<Array<Maybe<Scalars['ID']>>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Update an existing document in the collection of 'User' */
   updateUser?: Maybe<User>;
   /** Create a new document in the collection of 'User' */
   createUser: User;
-  /** Create a new document in the collection of 'Activity' */
-  createActivity: Activity;
   /** Delete an existing document in the collection of 'Day' */
   deleteDay?: Maybe<Day>;
-  /** Update an existing document in the collection of 'Setting' */
-  updateSetting?: Maybe<Setting>;
   /** Update an existing document in the collection of 'Timeslot' */
   updateTimeslot?: Maybe<Timeslot>;
   createDay: Day;
   /** Delete an existing document in the collection of 'Timeslot' */
   deleteTimeslot?: Maybe<Timeslot>;
-  /** Create a new document in the collection of 'Setting' */
-  createSetting: Setting;
-  /** Delete an existing document in the collection of 'Setting' */
-  deleteSetting?: Maybe<Setting>;
+  createPeriod: Period;
+  /** Delete an existing document in the collection of 'Period' */
+  deletePeriod?: Maybe<Period>;
   createTimeslot: Timeslot;
-  /** Update an existing document in the collection of 'Activity' */
-  updateActivity?: Maybe<Activity>;
   /** Delete an existing document in the collection of 'User' */
   deleteUser?: Maybe<User>;
   /** Update an existing document in the collection of 'Day' */
   updateDay?: Maybe<Day>;
-  /** Delete an existing document in the collection of 'Activity' */
-  deleteActivity?: Maybe<Activity>;
+  /** Update an existing document in the collection of 'Period' */
+  updatePeriod?: Maybe<Period>;
 };
 
 
 export type MutationUpdateUserArgs = {
   id: Scalars['ID'];
-  data: UserInput;
+  data?: Maybe<UpdateUserInput>;
 };
 
 
@@ -97,19 +109,8 @@ export type MutationCreateUserArgs = {
 };
 
 
-export type MutationCreateActivityArgs = {
-  data: ActivityInput;
-};
-
-
 export type MutationDeleteDayArgs = {
   id: Scalars['ID'];
-};
-
-
-export type MutationUpdateSettingArgs = {
-  id: Scalars['ID'];
-  data: SettingInput;
 };
 
 
@@ -129,24 +130,18 @@ export type MutationDeleteTimeslotArgs = {
 };
 
 
-export type MutationCreateSettingArgs = {
-  data: SettingInput;
+export type MutationCreatePeriodArgs = {
+  data?: Maybe<CreatePeriodInput>;
 };
 
 
-export type MutationDeleteSettingArgs = {
+export type MutationDeletePeriodArgs = {
   id: Scalars['ID'];
 };
 
 
 export type MutationCreateTimeslotArgs = {
   data: CreateTimeslotInput;
-};
-
-
-export type MutationUpdateActivityArgs = {
-  id: Scalars['ID'];
-  data: ActivityInput;
 };
 
 
@@ -161,14 +156,40 @@ export type MutationUpdateDayArgs = {
 };
 
 
-export type MutationDeleteActivityArgs = {
+export type MutationUpdatePeriodArgs = {
   id: Scalars['ID'];
+  data: PeriodInput;
 };
 
-/** 'Setting' input values */
-export type SettingInput = {
-  lunchDuration?: Maybe<Scalars['Int']>;
-  worktimePercentage?: Maybe<Scalars['Float']>;
+/** Allow manipulating the relationship between the types 'Period' and 'Day'. */
+export type PeriodDaysRelation = {
+  /** Create one or more documents of type 'Day' and associate them with the current document. */
+  create?: Maybe<Array<Maybe<DayInput>>>;
+  /** Connect one or more documents of type 'Day' with the current document using their IDs. */
+  connect?: Maybe<Array<Maybe<Scalars['ID']>>>;
+  /** Disconnect the given documents of type 'Day' from the current document using their IDs. */
+  disconnect?: Maybe<Array<Maybe<Scalars['ID']>>>;
+};
+
+/** 'Period' input values */
+export type PeriodInput = {
+  days?: Maybe<PeriodDaysRelation>;
+  settings: SettingsInput;
+  owner?: Maybe<PeriodOwnerRelation>;
+};
+
+/** Allow manipulating the relationship between the types 'Period' and 'User' using the field 'Period.owner'. */
+export type PeriodOwnerRelation = {
+  /** Create a document of type 'User' and associate it with the current document. */
+  create?: Maybe<UserInput>;
+  /** Connect a document of type 'User' with the current document using its ID. */
+  connect?: Maybe<Scalars['ID']>;
+};
+
+/** 'Settings' input values */
+export type SettingsInput = {
+  worktimePercentage: Scalars['Float'];
+  lunchDurationMinutes: Scalars['Int'];
 };
 
 /** Allow manipulating the relationship between the types 'Timeslot' and 'Day' using the field 'Timeslot.day'. */
@@ -181,10 +202,24 @@ export type TimeslotDayRelation = {
 
 /** 'Timeslot' input values */
 export type TimeslotInput = {
+  day?: Maybe<TimeslotDayRelation>;
   start: Scalars['Time'];
   end: Scalars['Time'];
-  day?: Maybe<TimeslotDayRelation>;
   activity: Scalars['String'];
+  owner?: Maybe<TimeslotOwnerRelation>;
+};
+
+/** Allow manipulating the relationship between the types 'Timeslot' and 'User' using the field 'Timeslot.owner'. */
+export type TimeslotOwnerRelation = {
+  /** Create a document of type 'User' and associate it with the current document. */
+  create?: Maybe<UserInput>;
+  /** Connect a document of type 'User' with the current document using its ID. */
+  connect?: Maybe<Scalars['ID']>;
+};
+
+export type UpdateUserInput = {
+  worktimePercentage: Scalars['Float'];
+  lunchDurationMinutes: Scalars['Int'];
 };
 
 /** 'User' input values */
@@ -194,15 +229,7 @@ export type UserInput = {
   image?: Maybe<Scalars['String']>;
   createdAt: Scalars['Time'];
   updatedAt: Scalars['Time'];
-};
-
-export type Activity = {
-  __typename?: 'Activity';
-  /** The document's ID. */
-  _id: Scalars['ID'];
-  /** The document's timestamp. */
-  _ts: Scalars['Long'];
-  name: Scalars['String'];
+  defaultSettings?: Maybe<SettingsInput>;
 };
 
 
@@ -212,9 +239,16 @@ export type Day = {
   _id: Scalars['ID'];
   date: Scalars['Date'];
   owner: User;
-  timeslots?: Maybe<Array<Maybe<Timeslot>>>;
+  timeslots: TimeslotPage;
+  period: Period;
   /** The document's timestamp. */
   _ts: Scalars['Long'];
+};
+
+
+export type DayTimeslotsArgs = {
+  _size?: Maybe<Scalars['Int']>;
+  _cursor?: Maybe<Scalars['String']>;
 };
 
 /** The pagination object for elements of type 'Day'. */
@@ -228,39 +262,55 @@ export type DayPage = {
   before?: Maybe<Scalars['String']>;
 };
 
+export type Period = {
+  __typename?: 'Period';
+  /** The document's ID. */
+  _id: Scalars['ID'];
+  owner: User;
+  settings: Settings;
+  days: DayPage;
+  /** The document's timestamp. */
+  _ts: Scalars['Long'];
+};
+
+
+export type PeriodDaysArgs = {
+  _size?: Maybe<Scalars['Int']>;
+  _cursor?: Maybe<Scalars['String']>;
+};
+
+/** The pagination object for elements of type 'Period'. */
+export type PeriodPage = {
+  __typename?: 'PeriodPage';
+  /** The elements of type 'Period' in this page. */
+  data: Array<Maybe<Period>>;
+  /** A cursor for elements coming after the current page. */
+  after?: Maybe<Scalars['String']>;
+  /** A cursor for elements coming before the current page. */
+  before?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
   __typename?: 'Query';
-  /** Find a document from the collection of 'Setting' by its id. */
-  findSettingByID?: Maybe<Setting>;
+  getAllPeriods: PeriodPage;
   /** Find a document from the collection of 'Day' by its id. */
   findDayByID?: Maybe<Day>;
-  allDays: DayPage;
-  /** Find a document from the collection of 'Activity' by its id. */
-  findActivityByID?: Maybe<Activity>;
   /** Find a document from the collection of 'User' by its id. */
   findUserByID?: Maybe<User>;
+  /** Find a document from the collection of 'Period' by its id. */
+  findPeriodByID?: Maybe<Period>;
   /** Find a document from the collection of 'Timeslot' by its id. */
   findTimeslotByID?: Maybe<Timeslot>;
 };
 
 
-export type QueryFindSettingByIdArgs = {
-  id: Scalars['ID'];
-};
-
-
-export type QueryFindDayByIdArgs = {
-  id: Scalars['ID'];
-};
-
-
-export type QueryAllDaysArgs = {
+export type QueryGetAllPeriodsArgs = {
   _size?: Maybe<Scalars['Int']>;
   _cursor?: Maybe<Scalars['String']>;
 };
 
 
-export type QueryFindActivityByIdArgs = {
+export type QueryFindDayByIdArgs = {
   id: Scalars['ID'];
 };
 
@@ -270,18 +320,19 @@ export type QueryFindUserByIdArgs = {
 };
 
 
+export type QueryFindPeriodByIdArgs = {
+  id: Scalars['ID'];
+};
+
+
 export type QueryFindTimeslotByIdArgs = {
   id: Scalars['ID'];
 };
 
-export type Setting = {
-  __typename?: 'Setting';
-  /** The document's ID. */
-  _id: Scalars['ID'];
-  /** The document's timestamp. */
-  _ts: Scalars['Long'];
-  lunchDuration?: Maybe<Scalars['Int']>;
-  worktimePercentage?: Maybe<Scalars['Float']>;
+export type Settings = {
+  __typename?: 'Settings';
+  worktimePercentage: Scalars['Float'];
+  lunchDurationMinutes: Scalars['Int'];
 };
 
 
@@ -290,11 +341,23 @@ export type Timeslot = {
   /** The document's ID. */
   _id: Scalars['ID'];
   end: Scalars['Time'];
+  owner: User;
   start: Scalars['Time'];
   activity: Scalars['String'];
   day: Day;
   /** The document's timestamp. */
   _ts: Scalars['Long'];
+};
+
+/** The pagination object for elements of type 'Timeslot'. */
+export type TimeslotPage = {
+  __typename?: 'TimeslotPage';
+  /** The elements of type 'Timeslot' in this page. */
+  data: Array<Maybe<Timeslot>>;
+  /** A cursor for elements coming after the current page. */
+  after?: Maybe<Scalars['String']>;
+  /** A cursor for elements coming before the current page. */
+  before?: Maybe<Scalars['String']>;
 };
 
 export type User = {
@@ -306,24 +369,130 @@ export type User = {
   /** The document's ID. */
   _id: Scalars['ID'];
   createdAt: Scalars['Time'];
+  defaultSettings?: Maybe<Settings>;
   /** The document's timestamp. */
   _ts: Scalars['Long'];
 };
 
 
-export type AllDaysQueryVariables = Exact<{ [key: string]: never; }>;
+export type AddTimeslotMutationVariables = Exact<{
+  day: Scalars['ID'];
+  start: Scalars['Time'];
+  end: Scalars['Time'];
+  activity: Scalars['String'];
+}>;
 
 
-export type AllDaysQuery = (
+export type AddTimeslotMutation = (
+  { __typename?: 'Mutation' }
+  & { createTimeslot: (
+    { __typename?: 'Timeslot' }
+    & Pick<Timeslot, '_id' | 'start' | 'end' | 'activity'>
+  ) }
+);
+
+export type DeleteTimeslotMutationVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type DeleteTimeslotMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteTimeslot?: Maybe<(
+    { __typename?: 'Timeslot' }
+    & Pick<Timeslot, '_id'>
+  )> }
+);
+
+export type EditTimeslotMutationVariables = Exact<{
+  id: Scalars['ID'];
+  start: Scalars['Time'];
+  end: Scalars['Time'];
+  activity: Scalars['String'];
+}>;
+
+
+export type EditTimeslotMutation = (
+  { __typename?: 'Mutation' }
+  & { updateTimeslot?: Maybe<(
+    { __typename?: 'Timeslot' }
+    & Pick<Timeslot, '_id' | 'start' | 'end' | 'activity'>
+  )> }
+);
+
+export type AllPeriodsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllPeriodsQuery = (
   { __typename?: 'Query' }
-  & { allDays: (
-    { __typename?: 'DayPage' }
+  & { getAllPeriods: (
+    { __typename?: 'PeriodPage' }
     & { data: Array<Maybe<(
-      { __typename?: 'Day' }
-      & Pick<Day, '_id' | 'date'>
+      { __typename?: 'Period' }
+      & Pick<Period, '_id'>
+      & { days: (
+        { __typename?: 'DayPage' }
+        & { data: Array<Maybe<(
+          { __typename?: 'Day' }
+          & Pick<Day, '_id' | 'date'>
+        )>> }
+      ) }
     )>> }
   ) }
 );
 
+export type GetPeriodQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
 
-export const AllDaysDocument: DocumentNode<AllDaysQuery, AllDaysQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllDays"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"allDays"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"date"}}]}}]}}]}}]};
+
+export type GetPeriodQuery = (
+  { __typename?: 'Query' }
+  & { findPeriodByID?: Maybe<(
+    { __typename?: 'Period' }
+    & Pick<Period, '_id'>
+    & { settings: (
+      { __typename?: 'Settings' }
+      & Pick<Settings, 'worktimePercentage' | 'lunchDurationMinutes'>
+    ), days: (
+      { __typename?: 'DayPage' }
+      & { data: Array<Maybe<(
+        { __typename?: 'Day' }
+        & Pick<Day, '_id' | 'date'>
+        & { timeslots: (
+          { __typename?: 'TimeslotPage' }
+          & { data: Array<Maybe<(
+            { __typename?: 'Timeslot' }
+            & Pick<Timeslot, '_id' | 'start' | 'end' | 'activity'>
+          )>> }
+        ) }
+      )>> }
+    ) }
+  )> }
+);
+
+export type UpdateSettingsMutationVariables = Exact<{
+  id: Scalars['ID'];
+  worktimePercentage: Scalars['Float'];
+  lunchDurationMinutes: Scalars['Int'];
+}>;
+
+
+export type UpdateSettingsMutation = (
+  { __typename?: 'Mutation' }
+  & { updatePeriod?: Maybe<(
+    { __typename?: 'Period' }
+    & { settings: (
+      { __typename?: 'Settings' }
+      & Pick<Settings, 'worktimePercentage' | 'lunchDurationMinutes'>
+    ) }
+  )> }
+);
+
+
+export const AddTimeslotDocument: DocumentNode<AddTimeslotMutation, AddTimeslotMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddTimeslot"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"day"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"start"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Time"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"end"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Time"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"activity"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createTimeslot"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"day"},"value":{"kind":"Variable","name":{"kind":"Name","value":"day"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"start"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"end"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"activity"},"value":{"kind":"Variable","name":{"kind":"Name","value":"activity"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"activity"}}]}}]}}]};
+export const DeleteTimeslotDocument: DocumentNode<DeleteTimeslotMutation, DeleteTimeslotMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTimeslot"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteTimeslot"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}}]}}]}}]};
+export const EditTimeslotDocument: DocumentNode<EditTimeslotMutation, EditTimeslotMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"EditTimeslot"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"start"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Time"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"end"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Time"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"activity"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateTimeslot"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"start"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"end"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"activity"},"value":{"kind":"Variable","name":{"kind":"Name","value":"activity"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"activity"}}]}}]}}]};
+export const AllPeriodsDocument: DocumentNode<AllPeriodsQuery, AllPeriodsQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllPeriods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllPeriods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"days"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"date"}}]}}]}}]}}]}}]}}]};
+export const GetPeriodDocument: DocumentNode<GetPeriodQuery, GetPeriodQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPeriod"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findPeriodByID"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"worktimePercentage"}},{"kind":"Field","name":{"kind":"Name","value":"lunchDurationMinutes"}}]}},{"kind":"Field","name":{"kind":"Name","value":"days"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"timeslots"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"_id"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"activity"}}]}}]}}]}}]}}]}}]}}]};
+export const UpdateSettingsDocument: DocumentNode<UpdateSettingsMutation, UpdateSettingsMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"worktimePercentage"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lunchDurationMinutes"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updatePeriod"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"settings"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"worktimePercentage"},"value":{"kind":"Variable","name":{"kind":"Name","value":"worktimePercentage"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"lunchDurationMinutes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lunchDurationMinutes"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"worktimePercentage"}},{"kind":"Field","name":{"kind":"Name","value":"lunchDurationMinutes"}}]}}]}}]}}]};

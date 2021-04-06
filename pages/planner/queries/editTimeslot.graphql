@@ -1,0 +1,16 @@
+mutation EditTimeslot(
+  $id: ID!
+  $start: Time!
+  $end: Time!
+  $activity: String!
+) {
+  updateTimeslot(
+    id: $id
+    data: { start: $start, end: $end, activity: $activity }
+  ) {
+    _id
+    start
+    end
+    activity
+  }
+}
