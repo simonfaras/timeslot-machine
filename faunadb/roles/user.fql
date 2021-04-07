@@ -135,7 +135,18 @@
             )
           )
         ),
-        delete: false,
+        delete: Query(
+          //Edit the template below to add a predicate condition
+          // Only delete your own data.
+
+          Lambda(
+            "ref",
+            Equals(
+              CurrentIdentity(), // logged in user
+              Select(["data", "owner"], Get(Var("ref")))
+            )
+          )
+        ),
         history_read: false,
         history_write: false,
         unrestricted_read: false
