@@ -1,5 +1,6 @@
 import React from "react";
 import formatDate from "date-fns/format";
+import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
 import parseISODate from "date-fns/parseISO";
 import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
 import { useMutation, gql } from "@apollo/client";
@@ -110,6 +111,14 @@ const calcEndTime = (date: Date, timeslotsArray: Timeslot[]) => {
 export default function Day({ _id, date: dateString, timeslots }: DayProps) {
   const date = parseISODate(dateString);
 
+  const createTimestamp = (time) => {
+    const [hours, minutes] = time.split(":").map((n) => Number.parseInt(n));
+    const d = new Date(date);
+    d.setHours(hours, minutes, 0, 0);
+
+    return d;
+  };
+
   const [addTimeslot] = useMutation(AddTimeslotDocument, {
     update(cache, { data: { createTimeslot } }) {
       cache.modify({
@@ -129,15 +138,8 @@ export default function Day({ _id, date: dateString, timeslots }: DayProps) {
   });
 
   const handleOnAddTimeslot = ({ activity, ...values }: TimeslotFields) => {
-    const createTimestamp = (time) => {
-      const [hours, minutes] = time.split(":").map((n) => Number.parseInt(n));
-      const d = new Date(date);
-      d.setHours(hours, minutes, 0, 0);
-
-      return d.toISOString();
-    };
-    const start = createTimestamp(values.start);
-    const end = createTimestamp(values.end);
+    const start = createTimestamp(values.start).toISOString();
+    const end = createTimestamp(values.end).toISOString();
 
     addTimeslot({
       variables: {
@@ -157,6 +159,36 @@ export default function Day({ _id, date: dateString, timeslots }: DayProps) {
         },
       },
     });
+  };
+
+  const validateTimeslotInput = ({ start, end, activity }) => {
+    const inputInterval = {
+      start: createTimestamp(start),
+      end: createTimestamp(end),
+    };
+
+    const duration =
+      inputInterval.end.getTime() - inputInterval.start.getTime();
+
+    if (duration === 0) {
+      return "SAME DATE ERROR";
+    }
+
+    if (duration < 0) {
+      return "END BEFORE START ERROR";
+    }
+
+    const overlaps = timeslots.find((timeslot) =>
+      areIntervalsOverlapping(inputInterval, {
+        start: new Date(timeslot.start),
+        end: new Date(timeslot.end),
+      })
+    );
+
+    if (overlaps) {
+      return "OVERLAPS ERROR";
+    }
+    return null;
   };
 
   return (
@@ -217,7 +249,10 @@ export default function Day({ _id, date: dateString, timeslots }: DayProps) {
           );
         }
       )}
-      <TimeslotInput onSave={handleOnAddTimeslot} />
+      <TimeslotInput
+        onSave={handleOnAddTimeslot}
+        validate={validateTimeslotInput}
+      />
     </div>
   );
 }

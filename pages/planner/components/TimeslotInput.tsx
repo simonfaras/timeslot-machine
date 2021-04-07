@@ -9,11 +9,12 @@ export interface TimeslotFields {
 
 interface TimeslotInputProps {
   onSave(values: TimeslotFields): void;
+  validate(values: TimeslotFields): string | null;
 }
 
 const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
 
-const TimeslotInput = ({ onSave }: TimeslotInputProps) => {
+const TimeslotInput = ({ onSave, validate }: TimeslotInputProps) => {
   const startInput = useRef(null);
   const endInput = useRef(null);
   const activityInput = useRef(null);
@@ -21,21 +22,33 @@ const TimeslotInput = ({ onSave }: TimeslotInputProps) => {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [activity, setActivity] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const values = { start, end, activity };
 
-    onSave({ start, end, activity });
-    startInput.current.clear();
-    endInput.current.clear();
-    setActivity("");
+    const error = validate(values);
 
-    startInput.current.focus();
+    if (error) {
+      setErrorMessage(error);
+    } else {
+      setErrorMessage("");
+      onSave(values);
+      startInput.current.clear();
+      endInput.current.clear();
+      setActivity("");
+
+      startInput.current.focus();
+    }
   };
 
-  const hasValidInput =
+  const hasRequiredInputs =
     isValidTimeValue(start) && isValidTimeValue(end) && activity;
 
+  if (errorMessage) {
+    console.error(errorMessage);
+  }
   return (
     <form onSubmit={handleSubmit}>
       <div className="entry entry-input">
@@ -57,7 +70,7 @@ const TimeslotInput = ({ onSave }: TimeslotInputProps) => {
             onChange={(e) => setActivity(e.target.value)}
             ref={activityInput}
           />
-          <button type="submit" disabled={!hasValidInput}>
+          <button type="submit" disabled={!hasRequiredInputs}>
             Spara
           </button>
         </div>
