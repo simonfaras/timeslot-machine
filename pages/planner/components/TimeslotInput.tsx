@@ -10,18 +10,27 @@ export interface TimeslotFields {
 interface TimeslotInputProps {
   onSave(values: TimeslotFields): void;
   validate(values: TimeslotFields): string | null;
+  defaultStart?: string;
+  defaultEnd?: string;
+  defaultActivity?: string;
 }
 
 const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
 
-const TimeslotInput = ({ onSave, validate }: TimeslotInputProps) => {
+const TimeslotInput = ({
+  onSave,
+  validate,
+  defaultStart = "",
+  defaultEnd = "",
+  defaultActivity = "",
+}: TimeslotInputProps) => {
   const startInput = useRef(null);
   const endInput = useRef(null);
   const activityInput = useRef(null);
 
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [activity, setActivity] = useState("");
+  const [start, setStart] = useState(defaultStart);
+  const [end, setEnd] = useState(defaultEnd);
+  const [activity, setActivity] = useState(defaultActivity);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = (e) => {

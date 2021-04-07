@@ -1,16 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import formatDate from "date-fns/format";
+import addDate from "date-fns/add";
 import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
 import parseISODate from "date-fns/parseISO";
 import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
-import { useMutation } from "@apollo/client";
 
-import {
-  Day as SchemaDay,
-  Timeslot as SchemaTimeslot,
-  AddTimeslotDocument,
-  DeleteTimeslotDocument,
-} from "@/graphql";
+import { useAddTimeslot, useDeleteTimeslot } from "../mutations/dayMutations";
 
 const weekdays = [
   "Söndag",
@@ -22,20 +17,31 @@ const weekdays = [
   "Lördag",
 ];
 
-type Timeslot = Pick<SchemaTimeslot, "_id" | "start" | "end" | "activity">;
+interface Timeslot {
+  _id: string;
+  start: string;
+  end: string;
+  activity: string;
+}
 
-interface DayProps extends Pick<SchemaDay, "_id" | "date"> {
+interface TimeslotParsed extends Pick<Timeslot, "_id" | "activity"> {
+  start: Date;
+  end: Date;
+}
+
+interface DayProps {
+  _id: string;
+  date: string;
   timeslots: Timeslot[];
+  defaultLunchDuration: number;
+  workdayHours: number;
 }
 
 const formatTime = (date) => formatDate(date, "HH:mm");
 
-const getTimeslotsSum = (timeslots: Timeslot[]) => {
+const getTimeslotsSum = (timeslots: TimeslotParsed[]) => {
   const getTimespan = ({ start, end }) => {
-    const startDate = new Date(`2020-01-01 ${start}`);
-    const endDate = new Date(`2020-01-01 ${end}`);
-
-    return endDate.getTime() - startDate.getTime();
+    return end.getTime() - start.getTime();
   };
 
   return timeslots.reduce((sum, timeslot) => sum + getTimespan(timeslot), 0);
@@ -46,161 +52,114 @@ const formatTimeslot = (timeslot: number) => {
 
   return `${Math.floor(minutes / 60)} tim ${minutes % 60} min`;
 };
-/*
 
 const isLastInstanceOfActivityForDay = (
-  timeslots: Timeslot[],
-  timeslot: Timeslot,
-  index: number
+  timeslot: TimeslotParsed,
+  timeslots: TimeslotParsed[]
 ) => {
-  const lastIndex = timeslots
+  const lastIndexOfActivity = timeslots
     .map(({ activity }) => activity)
     .lastIndexOf(timeslot.activity);
 
-  return lastIndex === index;
+  return (
+    timeslots.findIndex(({ _id }) => timeslot._id === _id) ===
+    lastIndexOfActivity
+  );
 };
 
-const getTotalTimeForActivity = (activity: string, timeslots: Timeslot[]) =>
+const getTotalTimeForActivity = (
+  activity: string,
+  timeslots: TimeslotParsed[]
+) =>
   getTimeslotsSum(
     timeslots.filter((timeslot) => timeslot.activity === activity)
   ) /
   1000 /
   60 /
   60;
-*/
 
-const isLunchTimeslot = (timeslot: Timeslot) =>
+const isLunchTimeslot = (timeslot: TimeslotParsed) =>
   timeslot.activity.toLowerCase() === "lunch";
 
-const formatEntryHeading = (date: Date) =>
-  `${weekdays[date.getDay()]} - ${formatDate(date, "d/M")}`;
-/*
+const formatEntryHeading = (isoDate: string) => {
+  const date = parseISODate(isoDate);
 
-const calcEndTime = (date: Date, timeslotsArray: Timeslot[]) => {
+  return `${weekdays[date.getDay()]} - ${formatDate(date, "d/M")}`;
+};
+
+const calcEndTime = (
+  timeslotsArray: TimeslotParsed[],
+  createTimestamp: (time: string) => Date,
+  lunchDuration: number,
+  workdayHours: number
+) => {
   const timeslots = timeslotsArray.slice(0);
-  const dateString = formatDate(date, "yyyy-MM-dd");
 
   if (!timeslots.find((timeslot) => isLunchTimeslot(timeslot))) {
-    const defaultLunchStart = new Date(`${dateString} 12:00`);
+    const defaultLunchStart = createTimestamp("12:00");
     const defaultLunchEnd = addDate(new Date(defaultLunchStart), {
-      minutes: settings.lunchDuration,
+      minutes: lunchDuration,
     });
 
     timeslots.push({
+      _id: "default_lunch",
       activity: "lunch",
-      start: formatDate(defaultLunchStart, "HH:mm"),
-      end: formatDate(defaultLunchEnd, "HH:mm"),
+      start: defaultLunchStart,
+      end: defaultLunchEnd,
     });
   }
 
-  let lunchDuration = settings.lunchDuration;
   const lunchTimeslot = timeslots.find((timeslot) => isLunchTimeslot(timeslot));
   if (lunchTimeslot) {
     lunchDuration =
-      (new Date(`${dateString} ${lunchTimeslot.end}`).getTime() -
-        new Date(`${dateString} ${lunchTimeslot.start}`).getTime()) /
-      1000 /
-      60;
+      (lunchTimeslot.end.getTime() - lunchTimeslot.start.getTime()) / 1000 / 60;
   }
 
-  const endTime = addDate(new Date(`${dateString} ${timeslots[0].start}`), {
-    minutes: Math.floor(settings.workdayHours * 60) + lunchDuration,
+  const endTime = addDate(new Date(timeslots[0].start), {
+    minutes: Math.floor(workdayHours * 60) + lunchDuration,
   });
 
   return formatDate(endTime, "HH:mm");
 };
-*/
 
-export default function Day({ _id, date: dateString, timeslots }: DayProps) {
-  const date = parseISODate(dateString);
+const createTimestampParser = (date: string) => (time: string): Date => {
+  const [hours, minutes] = time.split(":").map((n) => Number.parseInt(n));
+  const d = parseISODate(date);
+  d.setHours(hours, minutes, 0, 0);
 
-  const createTimestamp = (time) => {
-    const [hours, minutes] = time.split(":").map((n) => Number.parseInt(n));
-    const d = new Date(date);
-    d.setHours(hours, minutes, 0, 0);
+  return d;
+};
 
-    return d;
-  };
+export default function Day({
+  _id,
+  date,
+  timeslots,
+  defaultLunchDuration,
+  workdayHours,
+}: DayProps) {
+  const timestamp = createTimestampParser(date);
 
-  const [addTimeslot] = useMutation(AddTimeslotDocument, {
-    update(cache, { data: { createTimeslot } }) {
-      cache.modify({
-        id: `Day:${_id}`,
-        fields: {
-          timeslots(existingTimeslotRefs, { toReference }) {
-            return {
-              ...existingTimeslotRefs,
-              data: existingTimeslotRefs.data.concat(
-                toReference(createTimeslot)
-              ),
-            };
-          },
-        },
-      });
-    },
-  });
+  const [editTimeslotId, setEditTimeslotId] = useState(null);
 
-  const [deleteTimeslot] = useMutation(DeleteTimeslotDocument, {
-    update(cache, { data: { deleteTimeslot } }) {
-      cache.modify({
-        id: `Day:${_id}`,
-        fields: {
-          timeslots(existingTimeslotRefs, { readField }) {
-            return {
-              ...existingTimeslotRefs,
-              data: existingTimeslotRefs.data.filter(
-                (ref) => deleteTimeslot._id !== readField("_id", ref)
-              ),
-            };
-          },
-        },
-      });
-    },
-  });
-
-  const handleOnAddTimeslot = ({ activity, ...values }: TimeslotFields) => {
-    const start = createTimestamp(values.start).toISOString();
-    const end = createTimestamp(values.end).toISOString();
-
-    addTimeslot({
-      variables: {
-        day: _id,
-        start,
-        end,
-        activity,
-      },
-      optimisticResponse: {
-        __typename: "Mutation",
-        createTimeslot: {
-          __typename: "Timeslot",
-          _id: "Timeslot:TEMP",
-          start,
-          end,
-          activity,
-        },
-      },
-    });
-  };
+  const addTimeslot = useAddTimeslot(_id);
+  const deleteTimeslot = useDeleteTimeslot(_id);
 
   const handleOnRemoveTimeslot = (id) => {
-    deleteTimeslot({
-      variables: {
-        id,
-      },
-      optimisticResponse: {
-        __typename: "Mutation",
-        deleteTimeslot: {
-          __typename: "Timeslot",
-          _id: id,
-        },
-      },
+    deleteTimeslot(id);
+  };
+
+  const handleOnAddTimeslot = ({ start, end, activity }: TimeslotFields) => {
+    addTimeslot({
+      start: timestamp(start).toISOString(),
+      end: timestamp(end).toISOString(),
+      activity,
     });
   };
 
   const validateTimeslotInput = ({ start, end }) => {
     const inputInterval = {
-      start: createTimestamp(start),
-      end: createTimestamp(end),
+      start: timestamp(start),
+      end: timestamp(end),
     };
 
     const duration =
@@ -235,63 +194,86 @@ export default function Day({ _id, date: dateString, timeslots }: DayProps) {
         start: parseISODate(timeslot.start),
         end: parseISODate(timeslot.end),
       }))
-      .sort((a, b) => a.start.getTime() - b.start.getTime());
+      .sort((a, b) => a.start.getTime() - b.end.getTime());
   }, [timeslots]);
 
   return (
-    <div className="day" key={date.toISOString()}>
+    <div className="day" key={date}>
       <div className="header">
         <span className="title">{formatEntryHeading(date)}</span>
         <div className="summary-wrapper">
           <span className="summary">
             {formatTimeslot(
               getTimeslotsSum(
-                timeslots.filter((timeslot) => !isLunchTimeslot(timeslot))
+                orderedTimeslots.filter(
+                  (timeslot) => !isLunchTimeslot(timeslot)
+                )
               )
             )}
           </span>
-          {/*{timeslots.length > 0 && (
-            <span className="summary">{calcEndTime(date, timeslots)}</span>
-          )}*/}
+          {timeslots.length > 0 && (
+            <span className="summary">
+              {calcEndTime(
+                orderedTimeslots,
+                timestamp,
+                defaultLunchDuration,
+                workdayHours
+              )}
+            </span>
+          )}
         </div>
       </div>
-      {orderedTimeslots.map(({ _id: timeslotId, start, end, activity }) => (
-        <div className="entry" key={timeslotId}>
-          <div className="timespan">
-            {formatTime(start)}&nbsp;-&nbsp;{formatTime(end)}
-          </div>
-          <div className="description">
-            {activity}
-            {/*{isLastInstanceOfActivityForDay(
-                    timeslotsArray,
-                    timeslot,
-                    timeslotIndex
-                  ) && (
-                    <span className="entry-summary">
-                      (
-                      {getTotalTimeForActivity(
-                        timeslot.activity,
-                        timeslots
-                      ).toFixed(2)}
-                      )
-                    </span>
-                  )}*/}
-          </div>
-          {
-            <div className="entry-controls">
-              <button className="entry-control edit" />
-              <button
-                className="entry-control delete"
-                onClick={() => handleOnRemoveTimeslot(timeslotId)}
-              />
+      {orderedTimeslots.map((timeslot, index, items) =>
+        editTimeslotId !== timeslot._id ? (
+          <React.Fragment key={timeslot._id}>
+            <div className="entry">
+              <div className="timespan">
+                {formatTime(timeslot.start)}&nbsp;-&nbsp;
+                {formatTime(timeslot.end)}
+              </div>
+              <div className="description">
+                {timeslot.activity}
+                {isLastInstanceOfActivityForDay(timeslot, items) && (
+                  <span className="entry-summary">
+                    (
+                    {getTotalTimeForActivity(timeslot.activity, items).toFixed(
+                      2
+                    )}
+                    )
+                  </span>
+                )}
+              </div>
+              {
+                <div className="entry-controls">
+                  <button
+                    className="entry-control edit"
+                    onClick={() => setEditTimeslotId(timeslot._id)}
+                  />
+                  <button
+                    className="entry-control delete"
+                    onClick={() => handleOnRemoveTimeslot(timeslot._id)}
+                  />
+                </div>
+              }
             </div>
-          }
-        </div>
-      ))}
-      <TimeslotInput
-        onSave={handleOnAddTimeslot}
-        validate={validateTimeslotInput}
-      />
+          </React.Fragment>
+        ) : (
+          <TimeslotInput
+            key={timeslot._id}
+            onSave={handleOnAddTimeslot}
+            validate={validateTimeslotInput}
+            defaultStart={formatTime(timeslot.start)}
+            defaultEnd={formatTime(timeslot.end)}
+            defaultActivity={timeslot.activity}
+          />
+        )
+      )}
+      {!editTimeslotId && (
+        <TimeslotInput
+          onSave={handleOnAddTimeslot}
+          validate={validateTimeslotInput}
+        />
+      )}
     </div>
   );
 }

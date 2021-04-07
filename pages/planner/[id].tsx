@@ -30,6 +30,11 @@ export default function Planner() {
     return <div>LOADING</div>;
   }
 
+  const {
+    worktimePercentage,
+    lunchDurationMinutes,
+  } = periodQuery.data.findPeriodByID.settings;
+
   return (
     <div className="root">
       <Settings
@@ -42,17 +47,20 @@ export default function Planner() {
             },
           })
         }
-        worktimePercentage={
-          periodQuery.data.findPeriodByID.settings.worktimePercentage
-        }
-        lunchDurationMinutes={
-          periodQuery.data.findPeriodByID.settings.lunchDurationMinutes
-        }
+        worktimePercentage={worktimePercentage}
+        lunchDurationMinutes={lunchDurationMinutes}
       />
       <div className="wrapper">
         {periodQuery.data.findPeriodByID.days.data.map(
           ({ _id, date, timeslots }) => (
-            <Day key={_id} _id={_id} date={date} timeslots={timeslots.data} />
+            <Day
+              key={_id}
+              _id={_id}
+              date={date}
+              timeslots={timeslots.data}
+              defaultLunchDuration={lunchDurationMinutes}
+              workdayHours={worktimePercentage}
+            />
           )
         )}
       </div>
