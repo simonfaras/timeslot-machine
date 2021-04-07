@@ -8,15 +8,11 @@
     "start": "next start",
     "lint": "eslint ./**",
     "generate": "graphql-codegen --require dotenv/config",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "pre-commit": "lint-staged && pretty-quick --staged"
   },
   "lint-staged": {
     "*.{ts,tsx,js}": "eslint --fix"
-  },
-  "huskyaaa": {
-    "hooks": {
-      "pre-commit": "lint-staged && pretty-quick --staged"
-    }
   },
   "dependencies": {
     "@apollo/client": "^3.3.12",
