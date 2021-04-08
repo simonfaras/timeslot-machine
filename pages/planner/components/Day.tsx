@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import formatDate from "date-fns/format";
 import addDate from "date-fns/add";
 import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
@@ -8,6 +8,7 @@ import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
 import {
   useCreateTimeslot,
   useDeleteTimeslot,
+  useUpdateTimeslot,
 } from "../mutations/dayMutations";
 
 const weekdays = [
@@ -145,13 +146,12 @@ export default function Day({
   const [editTimeslotId, setEditTimeslotId] = useState(null);
 
   const createTimeslot = useCreateTimeslot(_id);
+  const updateTimeslot = useUpdateTimeslot(_id);
   const deleteTimeslot = useDeleteTimeslot(_id);
 
-  const handleOnRemoveTimeslot = (id) => {
-    deleteTimeslot(id);
-  };
+  const createTimeslotInput = useRef(null);
 
-  const handleOnAddTimeslot = ({ start, end, activity }: TimeslotFields) => {
+  const handleOnCreateTimeslot = ({ start, end, activity }: TimeslotFields) => {
     createTimeslot({
       start: timestamp(start).toISOString(),
       end: timestamp(end).toISOString(),
@@ -159,7 +159,26 @@ export default function Day({
     });
   };
 
-  const validateTimeslotInput = ({ start, end }) => {
+  const handleOnUpdateTimeslot = (
+    id: string,
+    { start, end, activity }: TimeslotFields
+  ) => {
+    updateTimeslot(id, {
+      start: timestamp(start).toISOString(),
+      end: timestamp(end).toISOString(),
+      activity,
+    });
+    setEditTimeslotId(null);
+  };
+
+  const handleOnDeleteTimeslot = (id) => {
+    deleteTimeslot(id);
+  };
+
+  const validateTimeslotInput = (
+    { start, end }: TimeslotFields,
+    { ignoreOverlapsFor = [] }: { ignoreOverlapsFor?: string[] } = {}
+  ) => {
     const inputInterval = {
       start: timestamp(start),
       end: timestamp(end),
@@ -176,18 +195,26 @@ export default function Day({
       return "END BEFORE START ERROR";
     }
 
-    const overlaps = timeslots.find((timeslot) =>
-      areIntervalsOverlapping(inputInterval, {
-        start: new Date(timeslot.start),
-        end: new Date(timeslot.end),
-      })
-    );
+    const overlaps = timeslots
+      .filter((timeslot) => !ignoreOverlapsFor.includes(timeslot._id))
+      .find((timeslot) =>
+        areIntervalsOverlapping(inputInterval, {
+          start: new Date(timeslot.start),
+          end: new Date(timeslot.end),
+        })
+      );
 
     if (overlaps) {
       return "OVERLAPS ERROR";
     }
     return null;
   };
+
+  useEffect(() => {
+    if (editTimeslotId === null) {
+      createTimeslotInput.current.focus();
+    }
+  }, [editTimeslotId]);
 
   const orderedTimeslots = useMemo(() => {
     return timeslots
@@ -254,7 +281,7 @@ export default function Day({
                   />
                   <button
                     className="entry-control delete"
-                    onClick={() => handleOnRemoveTimeslot(timeslot._id)}
+                    onClick={() => handleOnDeleteTimeslot(timeslot._id)}
                   />
                 </div>
               }
@@ -263,8 +290,12 @@ export default function Day({
         ) : (
           <TimeslotInput
             key={timeslot._id}
-            onSave={handleOnAddTimeslot}
-            validate={validateTimeslotInput}
+            onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
+            validate={(values) =>
+              validateTimeslotInput(values, {
+                ignoreOverlapsFor: [timeslot._id],
+              })
+            }
             defaultStart={formatTime(timeslot.start)}
             defaultEnd={formatTime(timeslot.end)}
             defaultActivity={timeslot.activity}
@@ -273,7 +304,8 @@ export default function Day({
       )}
       {!editTimeslotId && (
         <TimeslotInput
-          onSave={handleOnAddTimeslot}
+          ref={createTimeslotInput}
+          onSave={handleOnCreateTimeslot}
           validate={validateTimeslotInput}
         />
       )}

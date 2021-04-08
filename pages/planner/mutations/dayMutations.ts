@@ -3,8 +3,10 @@ import {
   CreateTimeslotDocument,
   DeleteTimeslotDocument,
   UpdateTimeslotDocument,
-  TimeslotInput,
+  TimeslotInput as SchemaTimeslotInput,
 } from "@/graphql";
+
+type TimeslotInput = Pick<SchemaTimeslotInput, "start" | "end" | "activity">;
 
 export function useCreateTimeslot(dayId: string) {
   const [creteTimeslotMutation] = useMutation(CreateTimeslotDocument, {
@@ -38,6 +40,56 @@ export function useCreateTimeslot(dayId: string) {
         createTimeslot: {
           __typename: "Timeslot",
           _id: "Timeslot:TEMP",
+          start,
+          end,
+          activity,
+        },
+      },
+    });
+  };
+}
+
+export function useUpdateTimeslot(dayId: string) {
+  const [updateTimeslotMutation] = useMutation(UpdateTimeslotDocument, {
+    update(cache, { data: { updateTimeslot } }) {
+      cache.modify({
+        id: `Day:${dayId}`,
+        fields: {
+          timeslots(existingTimeslotRefs, { readField, toReference }) {
+            const updatedIndex = existingTimeslotRefs.data.findIndex(
+              (ref) => updateTimeslot._id === readField("_id", ref)
+            );
+
+            return {
+              ...existingTimeslotRefs,
+              data: [
+                ...existingTimeslotRefs.data.slice(0, updatedIndex),
+                toReference(updateTimeslot),
+                ...existingTimeslotRefs.data.slice(updatedIndex + 1),
+              ],
+            };
+          },
+        },
+      });
+    },
+  });
+
+  return function updateTimeslot(
+    id: string,
+    { start, end, activity }: TimeslotInput
+  ) {
+    updateTimeslotMutation({
+      variables: {
+        id,
+        start,
+        end,
+        activity,
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        updateTimeslot: {
+          __typename: "Timeslot",
+          _id: id,
           start,
           end,
           activity,

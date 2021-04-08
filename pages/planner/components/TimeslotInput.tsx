@@ -1,5 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useImperativeHandle,
+  useState,
+  useRef,
+  forwardRef,
+} from "react";
 import TimeInput from "./TimeInput";
+
+interface TimeslotInputRef {
+  focus: () => void;
+}
 
 export interface TimeslotFields {
   start?: string;
@@ -17,75 +26,90 @@ interface TimeslotInputProps {
 
 const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
 
-const TimeslotInput = ({
-  onSave,
-  validate,
-  defaultStart = "",
-  defaultEnd = "",
-  defaultActivity = "",
-}: TimeslotInputProps) => {
-  const startInput = useRef(null);
-  const endInput = useRef(null);
-  const activityInput = useRef(null);
+const TimeslotInput = forwardRef<TimeslotInputRef, TimeslotInputProps>(
+  (
+    {
+      onSave,
+      validate,
+      defaultStart = "",
+      defaultEnd = "",
+      defaultActivity = "",
+    }: TimeslotInputProps,
+    ref
+  ) => {
+    const startInput = useRef(null);
+    const endInput = useRef(null);
+    const activityInput = useRef(null);
 
-  const [start, setStart] = useState(defaultStart);
-  const [end, setEnd] = useState(defaultEnd);
-  const [activity, setActivity] = useState(defaultActivity);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [start, setStart] = useState(defaultStart);
+    const [end, setEnd] = useState(defaultEnd);
+    const [activity, setActivity] = useState(defaultActivity);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const values = { start, end, activity };
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => startInput.current.focus(),
+      }),
+      []
+    );
 
-    const error = validate(values);
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const values = { start, end, activity };
 
-    if (error) {
-      setErrorMessage(error);
-    } else {
-      setErrorMessage("");
-      onSave(values);
-      startInput.current.clear();
-      endInput.current.clear();
-      setActivity("");
+      const error = validate(values);
 
-      startInput.current.focus();
+      if (error) {
+        setErrorMessage(error);
+      } else {
+        setErrorMessage("");
+        onSave(values);
+        startInput.current.clear();
+        endInput.current.clear();
+        setActivity("");
+
+        startInput.current.focus();
+      }
+    };
+
+    const hasRequiredInputs =
+      isValidTimeValue(start) && isValidTimeValue(end) && activity;
+
+    if (errorMessage) {
+      console.error(errorMessage);
     }
-  };
-
-  const hasRequiredInputs =
-    isValidTimeValue(start) && isValidTimeValue(end) && activity;
-
-  if (errorMessage) {
-    console.error(errorMessage);
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="entry entry-input">
+          <div className="timespan">
+            <TimeInput
+              onChange={(value) => {
+                setStart(value);
+              }}
+              value={start}
+              ref={startInput}
+            />
+            <span>&nbsp;-&nbsp;</span>
+            <TimeInput onChange={setEnd} value={end} ref={endInput} />
+          </div>
+          <div className="description">
+            <input
+              type="text"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              ref={activityInput}
+            />
+            <button type="submit" disabled={!hasRequiredInputs}>
+              Spara
+            </button>
+          </div>
+        </div>
+      </form>
+    );
   }
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="entry entry-input">
-        <div className="timespan">
-          <TimeInput
-            onChange={(value) => {
-              setStart(value);
-            }}
-            value={start}
-            ref={startInput}
-          />
-          <span>&nbsp;-&nbsp;</span>
-          <TimeInput onChange={setEnd} value={end} ref={endInput} />
-        </div>
-        <div className="description">
-          <input
-            type="text"
-            value={activity}
-            onChange={(e) => setActivity(e.target.value)}
-            ref={activityInput}
-          />
-          <button type="submit" disabled={!hasRequiredInputs}>
-            Spara
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-};
+);
+
+TimeslotInput.displayName = "TimeslotInput";
 
 export default TimeslotInput;
