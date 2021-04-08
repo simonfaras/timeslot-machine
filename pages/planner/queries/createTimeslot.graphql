@@ -1,4 +1,4 @@
-mutation AddTimeslot(
+mutation CreateTimeslot(
   $day: ID!
   $start: Time!
   $end: Time!

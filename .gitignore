@@ -35,7 +35,7 @@ yarn-error.log*
 .vercel
 
 # graphql
-./graphql/schema.graphql
-./graphql/index.graphql
+/src/graphql/schema.graphql
+/src/graphql/index.ts
 
 .idea/

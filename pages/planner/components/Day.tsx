@@ -5,7 +5,10 @@ import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
 import parseISODate from "date-fns/parseISO";
 import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
 
-import { useAddTimeslot, useDeleteTimeslot } from "../mutations/dayMutations";
+import {
+  useCreateTimeslot,
+  useDeleteTimeslot,
+} from "../mutations/dayMutations";
 
 const weekdays = [
   "Söndag",
@@ -141,7 +144,7 @@ export default function Day({
 
   const [editTimeslotId, setEditTimeslotId] = useState(null);
 
-  const addTimeslot = useAddTimeslot(_id);
+  const createTimeslot = useCreateTimeslot(_id);
   const deleteTimeslot = useDeleteTimeslot(_id);
 
   const handleOnRemoveTimeslot = (id) => {
@@ -149,7 +152,7 @@ export default function Day({
   };
 
   const handleOnAddTimeslot = ({ start, end, activity }: TimeslotFields) => {
-    addTimeslot({
+    createTimeslot({
       start: timestamp(start).toISOString(),
       end: timestamp(end).toISOString(),
       activity,

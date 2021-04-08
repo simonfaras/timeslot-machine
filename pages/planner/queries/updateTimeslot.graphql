@@ -1,4 +1,4 @@
-mutation EditTimeslot(
+mutation UpdateTimeslot(
   $id: ID!
   $start: Time!
   $end: Time!

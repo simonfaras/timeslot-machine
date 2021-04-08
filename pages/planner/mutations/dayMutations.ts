@@ -1,12 +1,13 @@
 import { useMutation } from "@apollo/client";
 import {
-  AddTimeslotDocument,
+  CreateTimeslotDocument,
   DeleteTimeslotDocument,
+  UpdateTimeslotDocument,
   TimeslotInput,
 } from "@/graphql";
 
-export function useAddTimeslot(dayId: string) {
-  const [addTimeslotMutation] = useMutation(AddTimeslotDocument, {
+export function useCreateTimeslot(dayId: string) {
+  const [creteTimeslotMutation] = useMutation(CreateTimeslotDocument, {
     update(cache, { data: { createTimeslot } }) {
       cache.modify({
         id: `Day:${dayId}`,
@@ -25,7 +26,7 @@ export function useAddTimeslot(dayId: string) {
   });
 
   return function addTimeslot({ activity, start, end }: TimeslotInput) {
-    addTimeslotMutation({
+    creteTimeslotMutation({
       variables: {
         day: dayId,
         start,
