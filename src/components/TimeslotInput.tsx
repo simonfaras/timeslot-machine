@@ -1,50 +1,115 @@
-import React from "react";
+import React, {
+  useImperativeHandle,
+  useState,
+  useRef,
+  forwardRef,
+} from "react";
+import TimeInput from "./TimeInput";
 
-export interface Timeslot {
-  start: string;
-  end: string;
-  activity: string;
+interface TimeslotInputRef {
+  focus: () => void;
 }
 
-interface TimeslotInputProps extends Partial<Timeslot> {
-  onChange(values: Timeslot): void;
+export interface TimeslotFields {
+  start?: string;
+  end?: string;
+  activity?: string;
 }
 
-const TimeslotInput = ({
-  onChange,
-  start = "",
-  end = "",
-  activity = "",
-}: TimeslotInputProps) => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+interface TimeslotInputProps {
+  onSave(values: TimeslotFields): void;
+  validate(values: TimeslotFields): string | null;
+  defaultStart?: string;
+  defaultEnd?: string;
+  defaultActivity?: string;
+}
 
-    const values = Array.from(formData).reduce(
-      (acc, [key, value]) => ({ ...acc, [key]: value }),
-      {}
+const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
+
+const TimeslotInput = forwardRef<TimeslotInputRef, TimeslotInputProps>(
+  (
+    {
+      onSave,
+      validate,
+      defaultStart = "",
+      defaultEnd = "",
+      defaultActivity = "",
+    }: TimeslotInputProps,
+    ref
+  ) => {
+    const startInput = useRef(null);
+    const endInput = useRef(null);
+    const activityInput = useRef(null);
+
+    const [start, setStart] = useState(defaultStart);
+    const [end, setEnd] = useState(defaultEnd);
+    const [activity, setActivity] = useState(defaultActivity);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => startInput.current.focus(),
+      }),
+      []
     );
 
-    onChange(values as Timeslot);
-    e.currentTarget.reset();
-    e.target[0].focus();
-  };
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const values = { start, end, activity };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="entry entry-input">
-        <div className="timespan">
-          <input type="time" name="start" defaultValue={start} required />
-          <span className="separator">-</span>
-          <input type="time" name="end" defaultValue={end} required />
+      const error = validate(values);
+
+      if (error) {
+        setErrorMessage(error);
+      } else {
+        setErrorMessage("");
+        onSave(values);
+        startInput.current.clear();
+        endInput.current.clear();
+        setActivity("");
+
+        startInput.current.focus();
+      }
+    };
+
+    const hasRequiredInputs =
+      isValidTimeValue(start) && isValidTimeValue(end) && activity;
+
+    if (errorMessage) {
+      console.error(errorMessage);
+    }
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="entry entry-input">
+          <div className="timespan">
+            <TimeInput
+              onChange={(value) => {
+                setStart(value);
+              }}
+              value={start}
+              ref={startInput}
+            />
+            <span>&nbsp;-&nbsp;</span>
+            <TimeInput onChange={setEnd} value={end} ref={endInput} />
+          </div>
+          <div className="description">
+            <input
+              type="text"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              ref={activityInput}
+            />
+            <button type="submit" disabled={!hasRequiredInputs}>
+              Spara
+            </button>
+          </div>
         </div>
-        <div className="description">
-          <input type="text" name="activity" defaultValue={activity} required />
-          <button type="submit">Spara</button>
-        </div>
-      </div>
-    </form>
-  );
-};
+      </form>
+    );
+  }
+);
+
+TimeslotInput.displayName = "TimeslotInput";
 
 export default TimeslotInput;

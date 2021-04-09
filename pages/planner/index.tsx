@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useQuery } from "@apollo/client";
 import { AllPeriodsDocument } from "@/graphql";
 
-export default function PlannerIndex() {
+export default function Planner() {
   const router = useRouter();
   const query = useQuery(AllPeriodsDocument);
 

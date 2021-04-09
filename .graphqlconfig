@@ -1,7 +1,7 @@
 {
   "name": "Rzptr",
   "schemaPath": "./src/graphql/schema.graphql",
-  "documents": "./pages/**/*.graphql",
+  "documents": "./src/graphql/queries/**/*.graphql",
   "excludes": [
     "./faunadb/export.graphql"
   ]

@@ -31,12 +31,15 @@ interface TimeInputRef {
   focus: () => void;
 }
 
-const EMPTY_VALUE = ""
+const EMPTY_VALUE = "";
 
 const parseValue = (value: string) => {
   const [hours, minutes] = value.split(":");
 
-  return [hours?.length ? hours : EMPTY_VALUE, minutes?.length ? minutes :  EMPTY_VALUE];
+  return [
+    hours?.length ? hours : EMPTY_VALUE,
+    minutes?.length ? minutes : EMPTY_VALUE,
+  ];
 };
 
 const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(

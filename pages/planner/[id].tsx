@@ -4,8 +4,8 @@ import { useRouter } from "next/router";
 import { GetPeriodDocument, UpdateSettingsDocument } from "@/graphql";
 import { useQuery, useMutation } from "@apollo/client";
 
-import Settings from "./components/PeriodSettings";
-import Day from "./components/Day";
+import Settings from "@/components/PeriodSettings";
+import Day from "@/components/Day";
 
 export default function Planner() {
   const router = useRouter();
