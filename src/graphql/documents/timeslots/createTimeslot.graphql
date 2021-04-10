@@ -7,9 +7,6 @@ mutation CreateTimeslot(
   createTimeslot(
     data: { day: $day, start: $start, end: $end, activity: $activity }
   ) {
-    _id
-    start
-    end
-    activity
+    ...Timeslot
   }
 }

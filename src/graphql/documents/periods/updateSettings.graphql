@@ -13,8 +13,7 @@ mutation UpdateSettings(
     }
   ) {
     settings {
-      worktimePercentage
-      lunchDurationMinutes
+      ...Settings
     }
   }
 }

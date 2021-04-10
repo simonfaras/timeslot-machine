@@ -1,0 +1,9 @@
+fragment Day on Day {
+  _id
+  date
+  timeslots {
+    data {
+      ...Timeslot
+    }
+  }
+}

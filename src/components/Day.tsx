@@ -9,7 +9,7 @@ import {
   useCreateTimeslot,
   useDeleteTimeslot,
   useUpdateTimeslot,
-} from "../graphql/mutations/dayMutations";
+} from "@/graphql/mutations/timeslotsMutations";
 
 const weekdays = [
   "Söndag",

@@ -1,0 +1,4 @@
+fragment Settings on Settings {
+  worktimePercentage
+  lunchDurationMinutes
+}

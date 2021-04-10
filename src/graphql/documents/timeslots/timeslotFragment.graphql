@@ -1,0 +1,6 @@
+fragment Timeslot on Timeslot {
+  _id
+  start
+  end
+  activity
+}

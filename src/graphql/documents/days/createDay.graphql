@@ -1,0 +1,5 @@
+mutation CreateDay($period: ID!, $date: Date!) {
+  createDay(data: { period: $period, date: $date }) {
+    ...Day
+  }
+}

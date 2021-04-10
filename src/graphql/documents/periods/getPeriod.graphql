@@ -1,0 +1,13 @@
+query GetPeriod($id: ID!) {
+  findPeriodByID(id: $id) {
+    _id
+    settings {
+      ...Settings
+    }
+    days {
+      data {
+        ...Day
+      }
+    }
+  }
+}

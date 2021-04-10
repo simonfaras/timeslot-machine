@@ -8,9 +8,6 @@ mutation UpdateTimeslot(
     id: $id
     data: { start: $start, end: $end, activity: $activity }
   ) {
-    _id
-    start
-    end
-    activity
+    ...Timeslot
   }
 }
