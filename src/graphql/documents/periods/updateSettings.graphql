@@ -1,13 +1,13 @@
 mutation UpdateSettings(
   $id: ID!
-  $worktimePercentage: Float!
+  $workWeekHours: Int!
   $lunchDurationMinutes: Int!
 ) {
   updatePeriod(
     id: $id
     data: {
       settings: {
-        worktimePercentage: $worktimePercentage
+        workWeekHours: $workWeekHours
         lunchDurationMinutes: $lunchDurationMinutes
       }
     }

@@ -1,4 +1,4 @@
 fragment Settings on Settings {
-  worktimePercentage
+  workWeekHours
   lunchDurationMinutes
 }

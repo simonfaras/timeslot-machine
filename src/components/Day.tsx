@@ -38,7 +38,7 @@ interface DayProps {
   date: string;
   timeslots: Timeslot[];
   defaultLunchDuration: number;
-  workdayHours: number;
+  workWeekHours: number;
 }
 
 const formatTime = (date) => formatDate(date, "HH:mm");
@@ -95,7 +95,7 @@ const calcEndTime = (
   timeslotsArray: TimeslotParsed[],
   createTimestamp: (time: string) => Date,
   lunchDuration: number,
-  workdayHours: number
+  workWeekHours: number
 ) => {
   const timeslots = timeslotsArray.slice(0);
 
@@ -120,7 +120,7 @@ const calcEndTime = (
   }
 
   const endTime = addDate(new Date(timeslots[0].start), {
-    minutes: Math.floor(workdayHours * 60) + lunchDuration,
+    minutes: Math.floor((workWeekHours / 5) * 60) + lunchDuration,
   });
 
   return formatDate(endTime, "HH:mm");
@@ -139,7 +139,7 @@ export default function Day({
   date,
   timeslots,
   defaultLunchDuration,
-  workdayHours,
+  workWeekHours,
 }: DayProps) {
   const timestamp = createTimestampParser(date);
 
@@ -247,7 +247,7 @@ export default function Day({
                 orderedTimeslots,
                 timestamp,
                 defaultLunchDuration,
-                workdayHours
+                workWeekHours
               )}
             </span>
           )}

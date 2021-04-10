@@ -14,7 +14,7 @@ type Period @collection(name: "periods") {
 }
 
 type Settings @embedded {
-  worktimePercentage: Float!
+  workWeekHours: Int!
   lunchDurationMinutes: Int!
 }
 
@@ -34,8 +34,8 @@ type Timeslot @collection(name: "timeslots") {
 }
 
 input CreatePeriodInput {
+  workWeekHours: Int!
   lunchDurationMinutes: Int!
-  worktimePercentage: Float!
 }
 
 input CreateDayInput {
@@ -51,7 +51,7 @@ input CreateTimeslotInput {
 }
 
 input UpdateUserInput {
-  worktimePercentage: Float!
+  workWeekHours: Int!
   lunchDurationMinutes: Int!
 }
 
@@ -60,7 +60,8 @@ type Query {
 }
 
 type Mutation {
-  updateUser(id: ID!, data: UpdateUserInput): User @resolver(name: "update_user")
+  updateUser(id: ID!, data: UpdateUserInput): User
+    @resolver(name: "update_user")
   createPeriod(data: CreatePeriodInput): Period!
     @resolver(name: "create_period")
   createDay(data: CreateDayInput!): Day! @resolver(name: "create_day")

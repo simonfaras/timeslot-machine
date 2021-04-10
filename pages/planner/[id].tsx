@@ -31,7 +31,7 @@ export default function Planner() {
   }
 
   const {
-    worktimePercentage,
+    workWeekHours,
     lunchDurationMinutes,
   } = periodQuery.data.findPeriodByID.settings;
 
@@ -41,12 +41,14 @@ export default function Planner() {
 
   return (
     <div className="root">
-      <Settings
-        update={updatePeriodSettings}
-        worktimePercentage={worktimePercentage}
-        lunchDurationMinutes={lunchDurationMinutes}
-      />
       <div className="wrapper">
+        <div className="controls-wrapper">
+          <Settings
+            update={updatePeriodSettings}
+            workWeekHours={workWeekHours}
+            lunchDurationMinutes={lunchDurationMinutes}
+          />
+        </div>
         {orderedDays.map(({ _id, date, timeslots }) => (
           <Day
             key={_id}
@@ -54,7 +56,7 @@ export default function Planner() {
             date={date}
             timeslots={timeslots.data}
             defaultLunchDuration={lunchDurationMinutes}
-            workdayHours={worktimePercentage}
+            workWeekHours={workWeekHours}
           />
         ))}
         <CreateDayInput

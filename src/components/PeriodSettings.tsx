@@ -3,7 +3,7 @@ import { Settings } from "@/graphql";
 
 export type SettingsConfig = Pick<
   Settings,
-  "worktimePercentage" | "lunchDurationMinutes"
+  "workWeekHours" | "lunchDurationMinutes"
 >;
 
 interface SettingsProps extends SettingsConfig {
@@ -13,17 +13,17 @@ interface SettingsProps extends SettingsConfig {
 export default function PeriodSettings({
   update,
   lunchDurationMinutes,
-  worktimePercentage,
+  workWeekHours,
 }: SettingsProps) {
   const [settings, setSettings] = useState<SettingsConfig>({
     lunchDurationMinutes,
-    worktimePercentage,
+    workWeekHours,
   });
 
   // Sync state with props
   useEffect(() => {
-    setSettings({ lunchDurationMinutes, worktimePercentage });
-  }, [setSettings, lunchDurationMinutes, worktimePercentage]);
+    setSettings({ lunchDurationMinutes, workWeekHours });
+  }, [setSettings, lunchDurationMinutes, workWeekHours]);
 
   const handleUpdate = (key: keyof SettingsConfig, value: number) =>
     setSettings((current) => ({
@@ -34,14 +34,14 @@ export default function PeriodSettings({
   const handleSave = () => update(settings);
 
   const handleCancel = () =>
-    setSettings({ lunchDurationMinutes, worktimePercentage });
+    setSettings({ lunchDurationMinutes, workWeekHours });
 
   const isPristine =
     lunchDurationMinutes !== settings.lunchDurationMinutes ||
-    worktimePercentage !== settings.worktimePercentage;
+    workWeekHours !== settings.workWeekHours;
 
   return (
-    <div>
+    <div className="controls">
       <div className="input-wrapper">
         <label htmlFor="lunch-duration">Lunch&nbsp;(min):</label>
         <input
@@ -57,16 +57,13 @@ export default function PeriodSettings({
         />
       </div>
       <div className="input-wrapper">
-        <label htmlFor="workday-hours">Arbetstid&nbsp;(timmar):</label>
+        <label htmlFor="workday-hours">Arbetstid&nbsp;(timmar/vecka):</label>
         <input
           type="number"
           id="workday-hours"
-          value={settings.worktimePercentage}
+          value={settings.workWeekHours}
           onChange={(e) =>
-            handleUpdate(
-              "worktimePercentage",
-              Number.parseFloat(e.target.value)
-            )
+            handleUpdate("workWeekHours", Number.parseFloat(e.target.value))
           }
         />
       </div>

@@ -16,13 +16,13 @@ export function useUpdatePeriodSettings(periodId: string) {
   });
 
   return function updatePeriodSettings({
-    worktimePercentage,
+    workWeekHours,
     lunchDurationMinutes,
   }: SettingsInput) {
     updatePeriodSettingsMutation({
       variables: {
         id: periodId,
-        worktimePercentage,
+        workWeekHours,
         lunchDurationMinutes,
       },
       optimisticResponse: {
@@ -30,7 +30,8 @@ export function useUpdatePeriodSettings(periodId: string) {
         updatePeriod: {
           __typename: "Period",
           settings: {
-            worktimePercentage,
+            __typename: "Settings",
+            workWeekHours,
             lunchDurationMinutes,
           },
         },
