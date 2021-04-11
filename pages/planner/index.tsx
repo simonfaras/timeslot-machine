@@ -8,7 +8,7 @@ export default function Planner() {
   const router = useRouter();
   const query = useQuery(AllPeriodsDocument);
 
-  if (router.isReady && !query.loading) {
+  if (router?.isReady && !query.loading) {
     const { data } = query.data.getAllPeriods;
     const lastDay = data
       .map((period) => period.days.data)
@@ -23,7 +23,8 @@ export default function Planner() {
     router.replace(`/planner/${latestPeriod._id}`);
   }
 
-  return <div>Planner index</div>;
+  // TODO Add Loader
+  return <div>Loading</div>;
 }
 
 export { default as getServerSideProps } from "@/utils/authProps";

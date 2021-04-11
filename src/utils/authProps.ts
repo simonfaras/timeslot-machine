@@ -1,9 +1,9 @@
-import {session} from "next-auth/client";
+import { session as authSession } from "next-auth/client";
 
 export default async function getServerSideAuth(context) {
-  const s = await session(context);
+  const session = await authSession(context);
 
-  if (!s) {
+  if (!session) {
     return {
       redirect: {
         destination: "/api/auth/signin",
@@ -14,7 +14,7 @@ export default async function getServerSideAuth(context) {
 
   return {
     props: {
-      session: await session(context),
+      session,
     },
   };
 }

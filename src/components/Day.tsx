@@ -91,6 +91,9 @@ const formatEntryHeading = (isoDate: string) => {
   return `${weekdays[date.getDay()]} - ${formatDate(date, "d/M")}`;
 };
 
+const getTimespanMinutes = (start: Date, end: Date): number =>
+  (end.getTime() - start.getTime()) / 1000 / 60;
+
 const calcEndTime = (
   timeslotsArray: TimeslotParsed[],
   createTimestamp: (time: string) => Date,
@@ -113,14 +116,29 @@ const calcEndTime = (
     });
   }
 
-  const lunchTimeslot = timeslots.find((timeslot) => isLunchTimeslot(timeslot));
-  if (lunchTimeslot) {
-    lunchDuration =
-      (lunchTimeslot.end.getTime() - lunchTimeslot.start.getTime()) / 1000 / 60;
-  }
+  // Find all non work timeslots and all unregistered time and sum it up
+  const breakTime = timeslots.reduce(
+    (breakTimeMinutes, timeslot, index, arr) => {
+      let timeslotBreakTimeMinutes = 0;
+      if (isLunchTimeslot(timeslot)) {
+        timeslotBreakTimeMinutes = getTimespanMinutes(
+          timeslot.start,
+          timeslot.end
+        );
+      } else if (index > 0 && timeslot.start !== arr[index - 1].end) {
+        // There is a gap between the last timeslot and this one, count the time as break
+        timeslotBreakTimeMinutes = getTimespanMinutes(
+          arr[index - 1].end,
+          timeslot.start
+        );
+      }
+      return breakTimeMinutes + timeslotBreakTimeMinutes;
+    },
+    0
+  );
 
   const endTime = addDate(new Date(timeslots[0].start), {
-    minutes: Math.floor((workWeekHours / 5) * 60) + lunchDuration,
+    minutes: Math.floor((workWeekHours / 5) * 60) + breakTime,
   });
 
   return formatDate(endTime, "HH:mm");
