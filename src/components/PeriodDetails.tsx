@@ -1,26 +1,22 @@
 import React from "react";
-import { useRouter } from "next/router";
+import { useQuery } from "@apollo/client";
 import isSameDayDate from "date-fns/isSameDay";
 
 import { GetPeriodDocument } from "@/graphql";
-import { useQuery } from "@apollo/client";
 import { useUpdatePeriodSettings } from "@/graphql/mutations/periodMutations";
-
-import Settings from "@/components/PeriodSettings";
 import Day from "@/components/Day";
 import CreateDayInput from "@/components/CreateDayInput";
+import PeriodSettings from "@/components/PeriodSettings";
 
 function getTimeFromDate(date) {
   return new Date(date).getTime();
 }
 
-export default function Planner() {
-  const router = useRouter();
-  const {
-    query: { id },
-  } = router;
-  const periodId: string = Array.isArray(id) ? id[0] : id;
+interface PeriodDetailsProps {
+  periodId: string;
+}
 
+export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
   const periodQuery = useQuery(GetPeriodDocument, {
     variables: { id: periodId },
   });
@@ -43,7 +39,7 @@ export default function Planner() {
     <div className="root">
       <div className="wrapper">
         <div className="controls-wrapper">
-          <Settings
+          <PeriodSettings
             update={updatePeriodSettings}
             workWeekHours={workWeekHours}
             lunchDurationMinutes={lunchDurationMinutes}
@@ -72,5 +68,3 @@ export default function Planner() {
     </div>
   );
 }
-
-export { default as getServerSideProps } from "@/utils/authProps";

@@ -1,13 +1,3 @@
-import { useSession } from "next-auth/client";
-
 export default function StartPage() {
-  const session = useSession();
-
-  console.log(session);
-
-  return (
-    <pre>
-      <code>{JSON.stringify(session, null, 2)}</code>
-    </pre>
-  );
+  return <div>Här var det tomt, logga in för att fylla upp...</div>;
 }

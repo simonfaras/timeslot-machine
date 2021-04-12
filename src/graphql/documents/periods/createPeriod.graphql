@@ -1,0 +1,15 @@
+mutation CreatePeriod($lunchDurationMinutes: Int!, $workWeekHours: Int!) {
+  createPeriod(
+    data: {
+      lunchDurationMinutes: $lunchDurationMinutes
+      workWeekHours: $workWeekHours
+    }
+  ) {
+    _id
+    days {
+      data {
+        ...Day
+      }
+    }
+  }
+}
