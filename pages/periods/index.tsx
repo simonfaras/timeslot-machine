@@ -7,7 +7,7 @@ import { AllPeriodsDocument } from "@/graphql";
 import PeriodDetails from "@/components/PeriodDetails";
 import PeriodSelect from "@/components/PeriodsSelect";
 
-export default function Planner() {
+export default function Periods() {
   const router = useRouter();
   const query = useQuery(AllPeriodsDocument);
   const { id } = router.query;
@@ -61,4 +61,4 @@ export default function Planner() {
   );
 }
 
-export { default as getServerSideProps } from "@/utils/authProps";
+export { default as getServerSideProps } from "@/utils/getAuthServerSideProps";

@@ -16,7 +16,7 @@ export default NextAuth({
   ],
   adapter: faunadbAdapter.Adapter({ faunaClient }),
   callbacks: {
-    redirect: async () => "/planner",
+    redirect: async () => "/periods",
   },
   debug: false,
 });

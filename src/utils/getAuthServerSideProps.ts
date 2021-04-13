@@ -1,6 +1,6 @@
 import { session as authSession } from "next-auth/client";
 
-export default async function getServerSideAuth(context) {
+export default async function getAuthServerSideProps(context) {
   const session = await authSession(context);
 
   if (!session) {
