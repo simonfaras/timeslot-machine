@@ -2,6 +2,7 @@ import React from "react";
 import { Provider } from "next-auth/client";
 import { ApolloProvider } from "@apollo/client";
 import { ThemeProvider } from "styled-components";
+import Head from "next/head";
 
 import { createClient } from "@/graphql/client";
 import Layout from "@/components/Layout";
@@ -22,6 +23,10 @@ function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     <ApolloProvider client={client}>
       <Provider session={session as any}>
         <ThemeProvider theme={theme}>
+          <Head>
+            <title>Time spent</title>
+            <meta name="robots" content="noindex" />
+          </Head>
           <Layout>
             <Component {...pageProps} />
           </Layout>
