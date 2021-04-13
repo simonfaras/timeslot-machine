@@ -87,7 +87,7 @@ export default function PeriodSelect({
         </select>
       )}
       {newPeriod && activePeriodId !== newPeriod.id ? (
-        <button onClick={() => onSelect(newPeriod.id)}>Visa ny</button>
+        <button onClick={() => onSelect(newPeriod.id)}>Gå till senaste</button>
       ) : (
         <button onClick={() => createPeriod()} disabled={!!newPeriod}>
           Skapa ny period

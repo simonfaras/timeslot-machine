@@ -23,7 +23,11 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
   const updatePeriodSettings = useUpdatePeriodSettings(periodId);
 
   if (periodQuery.loading) {
-    return <div>LOADING</div>;
+    return <div>Laddar</div>;
+  }
+
+  if (!periodQuery.data) {
+    return <div className="root">Hittar ingen period med id {periodId}.</div>;
   }
 
   const {
