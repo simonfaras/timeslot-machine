@@ -1,7 +1,11 @@
 {
   "name": "timeslot-machine",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
+  "author": {
+    "name": "Simon Farås"
+  },
+  "license": "ISC",
   "scripts": {
     "dev": "next dev",
     "build": "npm run generate && next build",

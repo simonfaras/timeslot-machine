@@ -257,17 +257,21 @@ const Adapter = (config, options = {}) => {
         expires = dateExpires.toISOString();
       }
 
-      const FQL = q.Create(q.Collection(collections.Session), {
-        data: {
-          userId: user.id,
-          expires: q.Time(expires),
-          sessionToken: randomBytes(32).toString("hex"),
-          accessToken: q.Select(
+      /*
+      accessToken: q.Select(
             "secret",
             q.Create(q.Tokens(), {
               instance: q.Ref(q.Collection(collections.User), user.id),
             })
           ),
+       */
+
+      const FQL = q.Create(q.Collection(collections.Session), {
+        data: {
+          userId: user.id,
+          expires: q.Time(expires),
+          sessionToken: randomBytes(32).toString("hex"),
+          accessToken: randomBytes(32).toString("hex"),
           createdAt: q.Now(),
           updatedAt: q.Now(),
         },
