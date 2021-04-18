@@ -7,6 +7,23 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
+/*
+
+input {
+  font-size: 1rem;
+  border: none;
+  background-color: transparent;
+}
+
+input:focus {
+  outline: none;
+}
+
+input[type="text"] {
+  padding: 0;
+}
+ */
+
 const TimeInputWrapper = styled.div`
   display: flex;
 `;
@@ -15,8 +32,12 @@ const Input = styled.input`
   font-variant-numeric: tabular-nums;
   padding: 0;
   color: #000;
+  width: 2ch;
   &:disabled {
     color: #000;
+  }
+  &:focus {
+    outline: none;
   }
 `;
 
@@ -116,7 +137,7 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
         <Input
           type="text"
           placeholder="hh"
-          size="1"
+          size="2"
           disabled={disabled}
           value={hours}
           onChange={handleHoursChange}
@@ -127,7 +148,7 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
         <Input
           type="text"
           placeholder="mm"
-          size="1"
+          size="2"
           disabled={disabled}
           value={minutes}
           onChange={handleMinutesChange}
