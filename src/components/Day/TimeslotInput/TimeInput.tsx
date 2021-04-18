@@ -14,6 +14,10 @@ const TimeInputWrapper = styled.div`
 const Input = styled.input`
   font-variant-numeric: tabular-nums;
   padding: 0;
+  color: #000;
+  &:disabled {
+    color: #000;
+  }
 `;
 
 const HOURS_EXPRESSION = /^([0-2]|[0-1][0-9]|2[0-3])$/i;
@@ -25,6 +29,7 @@ const isValidInput = (value, regExp) => value === "" || regExp.test(value);
 interface TimeInputProps {
   value?: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 interface TimeInputRef {
@@ -43,7 +48,7 @@ const parseValue = (value: string) => {
 };
 
 const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
-  ({ value = "", onChange }: TimeInputProps, ref) => {
+  ({ value = "", onChange, disabled = false }: TimeInputProps, ref) => {
     const [hoursValue, minutesValue] = parseValue(value);
 
     const hoursInput = useRef(null);
@@ -112,6 +117,7 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
           type="text"
           placeholder="hh"
           size="1"
+          disabled={disabled}
           value={hours}
           onChange={handleHoursChange}
           onFocus={handleFocus}
@@ -122,6 +128,7 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
           type="text"
           placeholder="mm"
           size="1"
+          disabled={disabled}
           value={minutes}
           onChange={handleMinutesChange}
           onFocus={handleFocus}

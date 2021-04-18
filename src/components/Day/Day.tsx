@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
+import styled from "styled-components";
 import formatDate from "date-fns/format";
 import addDate from "date-fns/add";
 import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
 import parseISODate from "date-fns/parseISO";
 import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
+import EntryControls, { EntryControlsContainer } from "./EntryControls";
 
 import {
   useCreateTimeslot,
@@ -152,6 +154,46 @@ const createTimestampParser = (date: string) => (time: string): Date => {
   return d;
 };
 
+const DayContainer = styled.div`
+  padding: 0.75rem 1rem 1rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #282c34;
+  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
+  & + & {
+    margin-top: 0.5rem;
+  }
+`;
+
+const DayHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+`;
+
+const DayTitle = styled.div`
+  font-weight: 400;
+`;
+
+const SummaryContainer = styled.div`
+  display: flex;
+`;
+
+const Summary = styled.div`
+  display: block;
+  margin-left: 1rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  border: 1px dashed #282c34;
+`;
+
+const EntryRow = styled.div`
+  position: relative;
+  margin-top: 0.5rem;
+  &:hover ${EntryControlsContainer} {
+    visibility: visible;
+  }
+`;
+
 export default function Day({
   _id,
   date,
@@ -246,11 +288,11 @@ export default function Day({
   }, [timeslots]);
 
   return (
-    <div className="day" key={date}>
-      <div className="header">
-        <span className="title">{formatEntryHeading(date)}</span>
-        <div className="summary-wrapper">
-          <span className="summary">
+    <DayContainer key={date}>
+      <DayHeader>
+        <DayTitle>{formatEntryHeading(date)}</DayTitle>
+        <SummaryContainer>
+          <Summary>
             {formatTimeslot(
               getTimeslotsSum(
                 orderedTimeslots.filter(
@@ -258,75 +300,54 @@ export default function Day({
                 )
               )
             )}
-          </span>
+          </Summary>
           {timeslots.length > 0 && (
-            <span className="summary">
+            <Summary>
               {calcEndTime(
                 orderedTimeslots,
                 timestamp,
                 defaultLunchDuration,
                 workWeekHours
               )}
-            </span>
+            </Summary>
           )}
-        </div>
-      </div>
-      {orderedTimeslots.map((timeslot, index, items) =>
-        editTimeslotId !== timeslot._id ? (
-          <React.Fragment key={timeslot._id}>
-            <div className="entry">
-              <div className="timespan">
-                {formatTime(timeslot.start)}&nbsp;-&nbsp;
-                {formatTime(timeslot.end)}
-              </div>
-              <div className="description">
-                {timeslot.activity}
-                {isLastInstanceOfActivityForDay(timeslot, items) && (
-                  <span className="entry-summary">
-                    (
-                    {getTotalTimeForActivity(timeslot.activity, items).toFixed(
-                      2
-                    )}
-                    )
-                  </span>
-                )}
-              </div>
-              {
-                <div className="entry-controls">
-                  <button
-                    className="entry-control edit"
-                    onClick={() => setEditTimeslotId(timeslot._id)}
-                  />
-                  <button
-                    className="entry-control delete"
-                    onClick={() => handleOnDeleteTimeslot(timeslot._id)}
-                  />
-                </div>
+        </SummaryContainer>
+      </DayHeader>
+      {orderedTimeslots.map((timeslot) => {
+        return (
+          <EntryRow key={timeslot._id}>
+            <TimeslotInput
+              key={`${timeslot._id}-${timeslot.start}-${timeslot.end}-${timeslot.activity}`}
+              onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
+              validate={(values) =>
+                validateTimeslotInput(values, {
+                  ignoreOverlapsFor: [timeslot._id],
+                })
               }
-            </div>
-          </React.Fragment>
-        ) : (
-          <TimeslotInput
-            key={timeslot._id}
-            onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
-            validate={(values) =>
-              validateTimeslotInput(values, {
-                ignoreOverlapsFor: [timeslot._id],
-              })
-            }
-            defaultStart={formatTime(timeslot.start)}
-            defaultEnd={formatTime(timeslot.end)}
-            defaultActivity={timeslot.activity}
-          />
-        )
-      )}
+              defaultStart={formatTime(timeslot.start)}
+              defaultEnd={formatTime(timeslot.end)}
+              defaultActivity={timeslot.activity}
+            >
+              {(isDirty) => (
+                <EntryControls
+                  onEdit={() => setEditTimeslotId(timeslot._id)}
+                  onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
+                  hidden={isDirty}
+                />
+              )}
+            </TimeslotInput>
+          </EntryRow>
+        );
+      })}
       {!editTimeslotId && (
-        <TimeslotInput
-          ref={createTimeslotInput}
-          onSave={handleOnCreateTimeslot}
-          validate={validateTimeslotInput}
-        />
+        <EntryRow>
+          <TimeslotInput
+            ref={createTimeslotInput}
+            onSave={handleOnCreateTimeslot}
+            validate={validateTimeslotInput}
+          />
+        </EntryRow>
       )}
-    </div>
+    </DayContainer>
   );
 }

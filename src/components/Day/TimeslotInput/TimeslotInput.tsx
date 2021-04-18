@@ -4,7 +4,24 @@ import React, {
   useRef,
   forwardRef,
 } from "react";
+import styled from "styled-components";
 import TimeInput from "./TimeInput";
+
+const TimeslotInputContainer = styled.div`
+  display: flex;
+  position: relative;
+`;
+
+const TextInput = styled.input`
+  color: #000;
+  &:disabled {
+    color: #000;
+  }
+`;
+
+const SaveButton = styled.button`
+  visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
+`;
 
 interface TimeslotInputRef {
   focus: () => void;
@@ -17,6 +34,7 @@ export interface TimeslotFields {
 }
 
 interface TimeslotInputProps {
+  children?: (isDirty: boolean) => React.ReactNode;
   onSave(values: TimeslotFields): void;
   validate(values: TimeslotFields): string | null;
   defaultStart?: string;
@@ -29,6 +47,7 @@ const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
 const TimeslotInput = forwardRef<TimeslotInputRef, TimeslotInputProps>(
   (
     {
+      children = () => null,
       onSave,
       validate,
       defaultStart = "",
@@ -45,6 +64,11 @@ const TimeslotInput = forwardRef<TimeslotInputRef, TimeslotInputProps>(
     const [end, setEnd] = useState(defaultEnd);
     const [activity, setActivity] = useState(defaultActivity);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const isDirty =
+      start !== defaultStart ||
+      end !== defaultEnd ||
+      activity !== defaultActivity;
 
     useImperativeHandle(
       ref,
@@ -76,36 +100,43 @@ const TimeslotInput = forwardRef<TimeslotInputRef, TimeslotInputProps>(
     const hasRequiredInputs =
       isValidTimeValue(start) && isValidTimeValue(end) && activity;
 
+    const showSaveButton = hasRequiredInputs && isDirty;
+
     if (errorMessage) {
       console.error(errorMessage);
     }
+
     return (
-      <form onSubmit={handleSubmit}>
-        <div className="entry entry-input">
-          <div className="timespan">
-            <TimeInput
-              onChange={(value) => {
-                setStart(value);
-              }}
-              value={start}
-              ref={startInput}
-            />
-            <span>&nbsp;-&nbsp;</span>
-            <TimeInput onChange={setEnd} value={end} ref={endInput} />
-          </div>
-          <div className="description">
-            <input
-              type="text"
-              value={activity}
-              onChange={(e) => setActivity(e.target.value)}
-              ref={activityInput}
-            />
-            <button type="submit" disabled={!hasRequiredInputs}>
+      <>
+        <form onSubmit={handleSubmit}>
+          <TimeslotInputContainer>
+            <div className="timespan">
+              <TimeInput
+                onChange={(value) => {
+                  setStart(value);
+                }}
+                value={start}
+                ref={startInput}
+              />
+              <span>&nbsp;-&nbsp;</span>
+              <TimeInput onChange={setEnd} value={end} ref={endInput} />
+            </div>
+            <div className="description">
+              <TextInput
+                type="text"
+                placeholder="Aktivitet"
+                value={activity}
+                onChange={(e) => setActivity(e.target.value)}
+                ref={activityInput}
+              />
+            </div>
+            <SaveButton $visible={showSaveButton} type="submit">
               Spara
-            </button>
-          </div>
-        </div>
-      </form>
+            </SaveButton>
+          </TimeslotInputContainer>
+        </form>
+        {children(isDirty)}
+      </>
     );
   }
 );
