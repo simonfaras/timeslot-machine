@@ -10,7 +10,7 @@ interface EntryControlsProps {
 export const EntryControlsContainer = styled.div`
   position: absolute;
   top: 0;
-  right: 0;
+  right: -20px;
   display: flex;
   visibility: hidden;
 `;

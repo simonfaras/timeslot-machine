@@ -4,7 +4,7 @@ import formatDate from "date-fns/format";
 import addDate from "date-fns/add";
 import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
 import parseISODate from "date-fns/parseISO";
-import TimeslotInput, { TimeslotFields } from "./TimeslotInput";
+import EntryRow, { TimeslotFields } from "./EntryRow";
 import EntryControls, { EntryControlsContainer } from "./EntryControls";
 
 import {
@@ -59,7 +59,7 @@ const formatTimeslot = (timeslot: number) => {
   return `${Math.floor(minutes / 60)} tim ${minutes % 60} min`;
 };
 
-const isLastInstanceOfActivityForDay = (
+const isLastInstanceOfActivity = (
   timeslot: TimeslotParsed,
   timeslots: TimeslotParsed[]
 ) => {
@@ -186,7 +186,13 @@ const Summary = styled.div`
   border: 1px dashed #282c34;
 `;
 
-const EntryRow = styled.div`
+const ActivityTotalTime = styled.div`
+  position: absolute;
+  right: 0;
+  top: 0;
+`;
+
+const EntryContainer = styled.div`
   position: relative;
   margin-top: 0.5rem;
   &:hover ${EntryControlsContainer} {
@@ -217,6 +223,8 @@ export default function Day({
       end: timestamp(end).toISOString(),
       activity,
     });
+
+    createTimeslotInput.current.focus();
   };
 
   const handleOnUpdateTimeslot = (
@@ -228,7 +236,8 @@ export default function Day({
       end: timestamp(end).toISOString(),
       activity,
     });
-    setEditTimeslotId(null);
+
+    createTimeslotInput.current.focus();
   };
 
   const handleOnDeleteTimeslot = (id) => {
@@ -313,10 +322,10 @@ export default function Day({
           )}
         </SummaryContainer>
       </DayHeader>
-      {orderedTimeslots.map((timeslot) => {
+      {orderedTimeslots.map((timeslot, index, collection) => {
         return (
-          <EntryRow key={timeslot._id}>
-            <TimeslotInput
+          <EntryContainer key={timeslot._id}>
+            <EntryRow
               key={`${timeslot._id}-${timeslot.start}-${timeslot.end}-${timeslot.activity}`}
               onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
               validate={(values) =>
@@ -328,25 +337,39 @@ export default function Day({
               defaultEnd={formatTime(timeslot.end)}
               defaultActivity={timeslot.activity}
             >
-              {(isDirty) => (
-                <EntryControls
-                  onEdit={() => setEditTimeslotId(timeslot._id)}
-                  onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
-                  hidden={isDirty}
-                />
+              {(hasSaveButton) => (
+                <>
+                  {!hasSaveButton &&
+                    !isLunchTimeslot(timeslot) &&
+                    isLastInstanceOfActivity(timeslot, collection) && (
+                      <ActivityTotalTime>
+                        (
+                        {getTotalTimeForActivity(
+                          timeslot.activity,
+                          collection
+                        ).toFixed(2)}
+                        )
+                      </ActivityTotalTime>
+                    )}
+                  <EntryControls
+                    onEdit={() => setEditTimeslotId(timeslot._id)}
+                    onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
+                    hidden={hasSaveButton}
+                  />
+                </>
               )}
-            </TimeslotInput>
-          </EntryRow>
+            </EntryRow>
+          </EntryContainer>
         );
       })}
       {!editTimeslotId && (
-        <EntryRow>
-          <TimeslotInput
+        <EntryContainer>
+          <EntryRow
             ref={createTimeslotInput}
             onSave={handleOnCreateTimeslot}
             validate={validateTimeslotInput}
           />
-        </EntryRow>
+        </EntryContainer>
       )}
     </DayContainer>
   );
