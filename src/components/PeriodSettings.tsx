@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 import { Settings } from "@/graphql";
+
+const PeriodSettingsContainer = styled.div`
+  display: block;
+  position: absolute;
+  left: 0;
+`;
+
+const InputWrapper = styled.div`
+  display: flex;
+  margin-top: 0.5rem;
+`;
 
 export type SettingsConfig = Pick<
   Settings,
@@ -41,8 +53,8 @@ export default function PeriodSettings({
     workWeekHours !== settings.workWeekHours;
 
   return (
-    <div className="controls">
-      <div className="input-wrapper">
+    <PeriodSettingsContainer>
+      <InputWrapper>
         <label htmlFor="lunch-duration">Lunch&nbsp;(min):</label>
         <input
           type="number"
@@ -55,8 +67,8 @@ export default function PeriodSettings({
             )
           }
         />
-      </div>
-      <div className="input-wrapper">
+      </InputWrapper>
+      <InputWrapper>
         <label htmlFor="workday-hours">Arbetstid&nbsp;(timmar/vecka):</label>
         <input
           type="number"
@@ -66,7 +78,7 @@ export default function PeriodSettings({
             handleUpdate("workWeekHours", Number.parseFloat(e.target.value))
           }
         />
-      </div>
+      </InputWrapper>
 
       {isPristine && (
         <div>
@@ -74,6 +86,6 @@ export default function PeriodSettings({
           <button onClick={handleCancel}>Avbryt</button>{" "}
         </div>
       )}
-    </div>
+    </PeriodSettingsContainer>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 import { useQuery } from "@apollo/client";
 import isSameDayDate from "date-fns/isSameDay";
 
@@ -7,6 +8,23 @@ import { useUpdatePeriodSettings } from "@/graphql/mutations/periodMutations";
 import Day from "@/components/Day";
 import CreateDayInput from "@/components/CreateDayInput";
 import PeriodSettings from "@/components/PeriodSettings";
+
+const PeriodsDetailsContainer = styled.div`
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+`;
+
+const PeriodDetailsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  position: relative;
+`;
+
+const PeriodDetailsSettingsWrapper = styled.div`
+  position: absolute;
+  right: -20px;
+`;
 
 function getTimeFromDate(date) {
   return new Date(date).getTime();
@@ -40,15 +58,15 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
     .sort((a, b) => getTimeFromDate(a.date) - getTimeFromDate(b.date));
 
   return (
-    <div className="root">
-      <div className="wrapper">
-        <div className="controls-wrapper">
+    <PeriodsDetailsContainer>
+      <PeriodDetailsWrapper>
+        <PeriodDetailsSettingsWrapper>
           <PeriodSettings
             update={updatePeriodSettings}
             workWeekHours={workWeekHours}
             lunchDurationMinutes={lunchDurationMinutes}
           />
-        </div>
+        </PeriodDetailsSettingsWrapper>
         {orderedDays.map(({ _id, date, timeslots }) => (
           <Day
             key={_id}
@@ -68,7 +86,7 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
             );
           }}
         />
-      </div>
-    </div>
+      </PeriodDetailsWrapper>
+    </PeriodsDetailsContainer>
   );
 }

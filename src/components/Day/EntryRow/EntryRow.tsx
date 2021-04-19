@@ -18,14 +18,21 @@ const Timespan = styled.div`
 
 const TextInput = styled.input`
   margin-left: 1rem;
+  padding: 0;
   color: #000;
+  font-size: 1rem;
+  border: none;
+  background-color: transparent;
   &:disabled {
     color: #000;
+  }
+  &:focus {
+    outline: none;
   }
 `;
 
 const SaveButton = styled.button`
-  visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
+  visibility: ${({ disabled }) => (disabled ? "hidden" : "visible")};
 `;
 
 interface EntryRowRef {
@@ -137,7 +144,7 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
               ref={activityInput}
             />
             <div>
-              <SaveButton $visible={showSaveButton} type="submit">
+              <SaveButton disabled={!showSaveButton} type="submit">
                 Spara
               </SaveButton>
             </div>

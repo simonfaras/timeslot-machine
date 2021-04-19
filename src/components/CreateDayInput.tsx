@@ -1,6 +1,16 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import formatDate from "date-fns/format";
 import { useCreateDay } from "@/graphql/mutations/dayMutations";
+
+const CreateDayInputContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  * + * {
+    margin-left: 0.5rem;
+  }
+`;
 
 interface CreateDayInput {
   periodId: string;
@@ -14,7 +24,7 @@ export default function CreateDayInput({ periodId, disabled }: CreateDayInput) {
   const createDay = useCreateDay(periodId);
 
   return (
-    <div className="add-day-wrapper" key="add-day">
+    <CreateDayInputContainer>
       <input
         type="date"
         value={value}
@@ -26,6 +36,6 @@ export default function CreateDayInput({ periodId, disabled }: CreateDayInput) {
       >
         Lägg till
       </button>
-    </div>
+    </CreateDayInputContainer>
   );
 }

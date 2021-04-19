@@ -188,6 +188,7 @@ const Summary = styled.div`
 
 const ActivityTotalTime = styled.div`
   position: absolute;
+  font-size: 0.825rem;
   right: 0;
   top: 0;
 `;

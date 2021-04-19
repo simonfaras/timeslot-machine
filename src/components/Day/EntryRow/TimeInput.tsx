@@ -7,23 +7,6 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
-/*
-
-input {
-  font-size: 1rem;
-  border: none;
-  background-color: transparent;
-}
-
-input:focus {
-  outline: none;
-}
-
-input[type="text"] {
-  padding: 0;
-}
- */
-
 const TimeInputWrapper = styled.div`
   display: flex;
 `;
@@ -33,6 +16,9 @@ const Input = styled.input`
   padding: 0;
   color: #000;
   width: 2ch;
+  font-size: 1rem;
+  border: none;
+  background-color: transparent;
   &:disabled {
     color: #000;
   }
