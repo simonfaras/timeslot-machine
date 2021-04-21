@@ -10,7 +10,11 @@ const PeriodSettingsContainer = styled.div`
 
 const InputWrapper = styled.div`
   display: flex;
+  justify-content: space-between;
   margin-top: 0.5rem;
+  input {
+    margin-left: 0.5rem;
+  }
 `;
 
 export type SettingsConfig = Pick<
