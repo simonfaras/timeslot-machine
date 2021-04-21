@@ -13,7 +13,7 @@ const InputWrapper = styled.div`
   justify-content: space-between;
   margin-top: 0.5rem;
   input {
-    margin-left: 0.5rem;
+    margin-left: 0.5remnpm;
   }
 `;
 
