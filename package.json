@@ -31,12 +31,12 @@
     "styled-components": "^5.2.3"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^1.21.3",
-    "@graphql-codegen/schema-ast": "^1.18.1",
-    "@graphql-codegen/typed-document-node": "^1.18.4",
-    "@graphql-codegen/typescript": "^1.21.1",
-    "@graphql-codegen/typescript-operations": "^1.17.15",
-    "@graphql-typed-document-node/core": "^3.1.0",
+    "@graphql-codegen/cli": "1.21.8",
+    "@graphql-codegen/schema-ast": "1.18.3",
+    "@graphql-codegen/typed-document-node": "1.18.10",
+    "@graphql-codegen/typescript": "1.23.0",
+    "@graphql-codegen/typescript-operations": "1.18.4",
+    "@graphql-typed-document-node/core": "3.1.1",
     "@types/next-auth": "^3.7.2",
     "@types/node": "^14.14.35",
     "@types/react": "^17.0.3",

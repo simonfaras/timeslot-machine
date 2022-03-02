@@ -323,46 +323,44 @@ export default function Day({
           )}
         </SummaryContainer>
       </DayHeader>
-      {orderedTimeslots.map((timeslot, index, collection) => {
-        return (
-          <EntryContainer key={timeslot._id}>
-            <EntryRow
-              key={`${timeslot._id}-${timeslot.start}-${timeslot.end}-${timeslot.activity}`}
-              onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
-              validate={(values) =>
-                validateTimeslotInput(values, {
-                  ignoreOverlapsFor: [timeslot._id],
-                })
-              }
-              defaultStart={formatTime(timeslot.start)}
-              defaultEnd={formatTime(timeslot.end)}
-              defaultActivity={timeslot.activity}
-            >
-              {(hasSaveButton) => (
-                <>
-                  {!hasSaveButton &&
-                    !isLunchTimeslot(timeslot) &&
-                    isLastInstanceOfActivity(timeslot, collection) && (
-                      <ActivityTotalTime>
-                        (
-                        {getTotalTimeForActivity(
-                          timeslot.activity,
-                          collection
-                        ).toFixed(2)}
-                        )
-                      </ActivityTotalTime>
-                    )}
-                  <EntryControls
-                    onEdit={() => setEditTimeslotId(timeslot._id)}
-                    onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
-                    hidden={hasSaveButton}
-                  />
-                </>
-              )}
-            </EntryRow>
-          </EntryContainer>
-        );
-      })}
+      {orderedTimeslots.map((timeslot, index, collection) => (
+        <EntryContainer key={timeslot._id}>
+          <EntryRow
+            key={`${timeslot._id}-${timeslot.start}-${timeslot.end}-${timeslot.activity}`}
+            onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
+            validate={(values) =>
+              validateTimeslotInput(values, {
+                ignoreOverlapsFor: [timeslot._id],
+              })
+            }
+            defaultStart={formatTime(timeslot.start)}
+            defaultEnd={formatTime(timeslot.end)}
+            defaultActivity={timeslot.activity}
+          >
+            {(hasSaveButton) => (
+              <>
+                {!hasSaveButton &&
+                  !isLunchTimeslot(timeslot) &&
+                  isLastInstanceOfActivity(timeslot, collection) && (
+                    <ActivityTotalTime>
+                      (
+                      {getTotalTimeForActivity(
+                        timeslot.activity,
+                        collection
+                      ).toFixed(2)}
+                      )
+                    </ActivityTotalTime>
+                  )}
+                <EntryControls
+                  onEdit={() => setEditTimeslotId(timeslot._id)}
+                  onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
+                  hidden={hasSaveButton}
+                />
+              </>
+            )}
+          </EntryRow>
+        </EntryContainer>
+      ))}
       {!editTimeslotId && (
         <EntryContainer>
           <EntryRow
