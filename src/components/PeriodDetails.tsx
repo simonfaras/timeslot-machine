@@ -8,6 +8,7 @@ import { useUpdatePeriodSettings } from "@/graphql/mutations/periodMutations";
 import Day from "@/components/Day";
 import CreateDayInput from "@/components/CreateDayInput";
 import PeriodSettings from "@/components/PeriodSettings";
+import PeriodSummary from "@/components/PeriodSummary";
 
 const PeriodsDetailsContainer = styled.div`
   padding: 1rem;
@@ -19,6 +20,7 @@ const PeriodDetailsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  gap: 1rem;
 `;
 
 const PeriodDetailsSettingsWrapper = styled.div`
@@ -67,16 +69,18 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
             lunchDurationMinutes={lunchDurationMinutes}
           />
         </PeriodDetailsSettingsWrapper>
-        {orderedDays.map(({ _id, date, timeslots }) => (
-          <Day
-            key={_id}
-            _id={_id}
-            date={date}
-            timeslots={timeslots.data}
-            defaultLunchDuration={lunchDurationMinutes}
-            workWeekHours={workWeekHours}
-          />
-        ))}
+        <div>
+          {orderedDays.map(({ _id, date, timeslots }) => (
+            <Day
+              key={_id}
+              _id={_id}
+              date={date}
+              timeslots={timeslots.data}
+              defaultLunchDuration={lunchDurationMinutes}
+              workWeekHours={workWeekHours}
+            />
+          ))}
+        </div>
         <CreateDayInput
           periodId={periodId}
           disabled={(date) => {
@@ -86,6 +90,7 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
             );
           }}
         />
+        <PeriodSummary periodId={periodId} />
       </PeriodDetailsWrapper>
     </PeriodsDetailsContainer>
   );

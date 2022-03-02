@@ -6,7 +6,6 @@ import { useCreateDay } from "@/graphql/mutations/dayMutations";
 const CreateDayInputContainer = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 1rem;
   * + * {
     margin-left: 0.5rem;
   }
