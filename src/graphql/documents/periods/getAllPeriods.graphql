@@ -1,5 +1,6 @@
-query AllPeriods {
-  getAllPeriods {
+query AllPeriods($cursor: String) {
+  getAllPeriods(_cursor: $cursor) {
+    after
     data {
       _id
       days {

@@ -16,7 +16,27 @@ const authLink = (token) => {
   });
 };
 
-const cache = new InMemoryCache();
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        getAllPeriods: {
+          keyArgs: false,
+          merge: (existing, incoming) => {
+            const merged = Object.assign({}, incoming, {
+              data: [
+                ...(existing?.data.slice() ?? []),
+                ...incoming?.data.slice(),
+              ],
+            });
+
+            return merged;
+          },
+        },
+      },
+    },
+  },
+});
 
 export const createClient = (token) =>
   new ApolloClient({
