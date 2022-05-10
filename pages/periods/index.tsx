@@ -1,62 +1,17 @@
-import React, { useEffect } from "react";
-import { useRouter } from "next/router";
-import { useQuery } from "@apollo/client";
-import parseISODate from "date-fns/parseISO";
+import React, { useEffect, useState } from "react";
+import Periods from "@/views/Periods";
 
-import { AllPeriodsDocument } from "@/graphql";
-import PeriodDetails from "@/components/PeriodDetails";
-import PeriodSelect from "@/components/PeriodsSelect";
-
-export default function Periods() {
-  const router = useRouter();
-  const query = useQuery(AllPeriodsDocument);
-  const { id } = router.query;
-  const activePeriodId = Array.isArray(id) ? id[0] : id;
-  const periods = query.data?.getAllPeriods.data ?? [];
-
-  const setPeriod = (id, replace = false) => {
-    (replace ? router.replace : router.push)(`${router.pathname}?id=${id}`);
-  };
+export default function PeriodsPage() {
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (
-      router?.isReady &&
-      !query.loading &&
-      periods.length &&
-      !activePeriodId
-    ) {
-      const { data } = query.data.getAllPeriods;
-      const lastDay = data
-        .map((period) => period.days.data)
-        .flat()
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .pop();
-
-      const latestPeriod =
-        data.find((period) =>
-          period.days.data.find((day) => day._id === lastDay._id)
-        ) ?? periods[0];
-
-      setPeriod(latestPeriod._id, true);
-    }
-  }, [router, query, periods, activePeriodId]);
+    setIsClient(true);
+  });
 
   return (
     <div>
-      {query.loading ? (
-        "Laddar"
-      ) : (
-        <PeriodSelect
-          activePeriodId={activePeriodId}
-          periods={periods.map((period) => ({
-            id: period._id,
-            days: period.days.data.map(({ date }) => parseISODate(date)),
-          }))}
-          onSelect={setPeriod}
-          onCreate={setPeriod}
-        />
-      )}
-      {!!activePeriodId && <PeriodDetails periodId={activePeriodId} />}
+      {!isClient && "Laddar"}
+      {isClient && <Periods />}
     </div>
   );
 }
