@@ -39,3 +39,4 @@ yarn-error.log*
 /src/graphql/index.ts
 
 .idea/
+.vscode/
