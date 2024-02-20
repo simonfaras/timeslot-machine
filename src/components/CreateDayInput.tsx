@@ -1,15 +1,5 @@
-import React, { useState } from "react";
-import styled from "styled-components";
-import formatDate from "date-fns/format";
-import { useCreateDay } from "@/graphql/mutations/dayMutations";
-
-const CreateDayInputContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  * + * {
-    margin-left: 0.5rem;
-  }
-`;
+import { useCreateDay } from '@/data/queries';
+import React, { useState } from 'react';
 
 interface CreateDayInput {
   periodId: string;
@@ -18,23 +8,25 @@ interface CreateDayInput {
 
 export default function CreateDayInput({ periodId, disabled }: CreateDayInput) {
   const [value, setValue] = useState(
-    formatDate(new Date(Date.now()), "yyyy-MM-dd")
+    new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium' }).format(
+      new Date(Date.now())
+    )
   );
   const createDay = useCreateDay(periodId);
 
   return (
-    <CreateDayInputContainer>
+    <div className="flex justify-end gap-2">
       <input
         type="date"
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
       <button
-        onClick={() => createDay({ date: value })}
+        onClick={() => createDay.mutate({ date: new Date(value) })}
         disabled={disabled(value)}
       >
         Lägg till
       </button>
-    </CreateDayInputContainer>
+    </div>
   );
 }

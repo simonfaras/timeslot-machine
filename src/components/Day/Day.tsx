@@ -1,52 +1,53 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import styled from "styled-components";
-import formatDate from "date-fns/format";
-import addDate from "date-fns/add";
-import areIntervalsOverlapping from "date-fns/areIntervalsOverlapping";
-import parseISODate from "date-fns/parseISO";
-import EntryRow, { TimeslotFields } from "./EntryRow";
-import EntryControls, { EntryControlsContainer } from "./EntryControls";
-
-import {
-  useCreateTimeslot,
-  useDeleteTimeslot,
-  useUpdateTimeslot,
-} from "@/graphql/mutations/timeslotsMutations";
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import EntryRow, { TimeslotFields } from './EntryRow';
+import EntryControls from './EntryControls';
+import { EntryRowRef } from './EntryRow/EntryRow';
+import { Timeslot } from '@/data/storage';
+import { useCreateTimeslot } from '@/data/queries';
 
 const weekdays = [
-  "Söndag",
-  "Måndag",
-  "Tisdag",
-  "Onsdag",
-  "Torsdag",
-  "Fredag",
-  "Lördag",
+  'Söndag',
+  'Måndag',
+  'Tisdag',
+  'Onsdag',
+  'Torsdag',
+  'Fredag',
+  'Lördag',
 ];
 
-interface Timeslot {
-  _id: string;
-  start: string;
-  end: string;
-  activity: string;
-}
-
-interface TimeslotParsed extends Pick<Timeslot, "_id" | "activity"> {
+interface TimeslotParsed extends Pick<Timeslot, 'id' | 'description'> {
   start: Date;
   end: Date;
 }
 
 interface DayProps {
-  _id: string;
-  date: string;
+  id: string;
+  date: Date;
   timeslots: Timeslot[];
   defaultLunchDuration: number;
   workWeekHours: number;
 }
 
-const formatTime = (date) => formatDate(date, "HH:mm");
+type Interval = {
+  start: Date;
+  end: Date;
+};
+
+const areIntervalsOverlapping = (a: Interval, b: Interval): boolean => {
+  return b.start.getTime() < a.end.getTime();
+};
+
+const addMinutes = (date: Date, minutes: number) =>
+  new Date(date.getTime() + minutes * 60 * 1000);
+
+const formatTime = (date: Date) =>
+  new Intl.DateTimeFormat('sv-SE', { timeStyle: 'short' }).format(date);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium' }).format(date);
 
 const getTimeslotsSum = (timeslots: TimeslotParsed[]) => {
-  const getTimespan = ({ start, end }) => {
+  const getTimespan = ({ start, end }: { start: Date; end: Date }) => {
     return end.getTime() - start.getTime();
   };
 
@@ -64,12 +65,11 @@ const isLastInstanceOfActivity = (
   timeslots: TimeslotParsed[]
 ) => {
   const lastIndexOfActivity = timeslots
-    .map(({ activity }) => activity)
-    .lastIndexOf(timeslot.activity);
+    .map(({ description }) => description)
+    .lastIndexOf(timeslot.description);
 
   return (
-    timeslots.findIndex(({ _id }) => timeslot._id === _id) ===
-    lastIndexOfActivity
+    timeslots.findIndex(({ id }) => timeslot.id === id) === lastIndexOfActivity
   );
 };
 
@@ -78,19 +78,17 @@ const getTotalTimeForActivity = (
   timeslots: TimeslotParsed[]
 ) =>
   getTimeslotsSum(
-    timeslots.filter((timeslot) => timeslot.activity === activity)
+    timeslots.filter((timeslot) => timeslot.description === activity)
   ) /
   1000 /
   60 /
   60;
 
 const isLunchTimeslot = (timeslot: TimeslotParsed) =>
-  timeslot.activity.toLowerCase() === "lunch";
+  timeslot.description.toLowerCase() === 'lunch';
 
-const formatEntryHeading = (isoDate: string) => {
-  const date = parseISODate(isoDate);
-
-  return `${weekdays[date.getDay()]} - ${formatDate(date, "d/M")}`;
+const formatEntryHeading = (date: Date) => {
+  return `${weekdays[date.getDay()]} - ${formatDate(date)}`;
 };
 
 const getTimespanMinutes = (start: Date, end: Date): number =>
@@ -105,14 +103,12 @@ const calcEndTime = (
   const timeslots = timeslotsArray.slice(0);
 
   if (!timeslots.find((timeslot) => isLunchTimeslot(timeslot))) {
-    const defaultLunchStart = createTimestamp("12:00");
-    const defaultLunchEnd = addDate(new Date(defaultLunchStart), {
-      minutes: lunchDuration,
-    });
+    const defaultLunchStart = createTimestamp('12:00');
+    const defaultLunchEnd = addMinutes(defaultLunchStart, lunchDuration);
 
     timeslots.push({
-      _id: "default_lunch",
-      activity: "lunch",
+      id: 'default_lunch',
+      description: 'lunch',
       start: defaultLunchStart,
       end: defaultLunchEnd,
     });
@@ -139,70 +135,26 @@ const calcEndTime = (
     0
   );
 
-  const endTime = addDate(new Date(timeslots[0].start), {
-    minutes: Math.floor((workWeekHours / 5) * 60) + breakTime,
-  });
+  const endTime = addMinutes(
+    new Date(timeslots[0].start),
+    Math.floor((workWeekHours / 5) * 60) + breakTime
+  );
 
-  return formatDate(endTime, "HH:mm");
+  return formatTime(endTime);
 };
 
-const createTimestampParser = (date: string) => (time: string): Date => {
-  const [hours, minutes] = time.split(":").map((n) => Number.parseInt(n));
-  const d = parseISODate(date);
-  d.setHours(hours, minutes, 0, 0);
+const createTimestampParser =
+  (date: Date) =>
+  (time: string): Date => {
+    const [hours, minutes] = time.split(':').map((n) => Number.parseInt(n));
+    const d = new Date(date);
+    d.setHours(hours, minutes, 0, 0);
 
-  return d;
-};
-
-const DayContainer = styled.div`
-  padding: 0.75rem 1rem 1rem 1rem;
-  border-radius: 4px;
-  border: 1px solid #282c34;
-  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
-  & + & {
-    margin-top: 0.5rem;
-  }
-`;
-
-const DayHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-`;
-
-const DayTitle = styled.div`
-  font-weight: 400;
-`;
-
-const SummaryContainer = styled.div`
-  display: flex;
-`;
-
-const Summary = styled.div`
-  display: block;
-  margin-left: 1rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 5px;
-  border: 1px dashed #282c34;
-`;
-
-const ActivityTotalTime = styled.div`
-  position: absolute;
-  font-size: 0.825rem;
-  right: 0;
-  top: 0;
-`;
-
-const EntryContainer = styled.div`
-  position: relative;
-  margin-top: 0.5rem;
-  &:hover ${EntryControlsContainer} {
-    visibility: visible;
-  }
-`;
+    return d;
+  };
 
 export default function Day({
-  _id,
+  id,
   date,
   timeslots,
   defaultLunchDuration,
@@ -210,45 +162,60 @@ export default function Day({
 }: DayProps) {
   const timestamp = createTimestampParser(date);
 
-  const [editTimeslotId, setEditTimeslotId] = useState(null);
+  const [editTimeslotId, setEditTimeslotId] = useState<string | null>(null);
 
-  const createTimeslot = useCreateTimeslot(_id);
-  const updateTimeslot = useUpdateTimeslot(_id);
-  const deleteTimeslot = useDeleteTimeslot(_id);
+  const createTimeslot = useCreateTimeslot(id);
+  const updateTimeslot = useUpdateTimeslot(id);
+  const deleteTimeslot = useDeleteTimeslot(id);
 
-  const createTimeslotInput = useRef(null);
+  const createTimeslotInput = useRef<EntryRowRef>(null);
 
   const handleOnCreateTimeslot = ({ start, end, activity }: TimeslotFields) => {
+    if (start == null || end == null) {
+      console.error('Invalid start or end', { start, end });
+      return;
+    }
+
     createTimeslot({
       start: timestamp(start).toISOString(),
       end: timestamp(end).toISOString(),
       activity,
     });
 
-    createTimeslotInput.current.focus();
+    createTimeslotInput.current?.focus();
   };
 
   const handleOnUpdateTimeslot = (
     id: string,
     { start, end, activity }: TimeslotFields
   ) => {
+    if (start == null || end == null) {
+      console.error('Invalid start or end', { start, end });
+      return;
+    }
+
     updateTimeslot(id, {
       start: timestamp(start).toISOString(),
       end: timestamp(end).toISOString(),
       activity,
     });
 
-    createTimeslotInput.current.focus();
+    createTimeslotInput.current?.focus();
   };
 
-  const handleOnDeleteTimeslot = (id) => {
+  const handleOnDeleteTimeslot = (id: string) => {
     deleteTimeslot(id);
   };
 
   const validateTimeslotInput = (
     { start, end }: TimeslotFields,
     { ignoreOverlapsFor = [] }: { ignoreOverlapsFor?: string[] } = {}
-  ) => {
+  ): string | null => {
+    if (start == null || end == null) {
+      console.error('Invalid start or end', { start, end });
+      return null;
+    }
+
     const inputInterval = {
       start: timestamp(start),
       end: timestamp(end),
@@ -258,15 +225,15 @@ export default function Day({
       inputInterval.end.getTime() - inputInterval.start.getTime();
 
     if (duration === 0) {
-      return "SAME DATE ERROR";
+      return 'SAME DATE ERROR';
     }
 
     if (duration < 0) {
-      return "END BEFORE START ERROR";
+      return 'END BEFORE START ERROR';
     }
 
     const overlaps = timeslots
-      .filter((timeslot) => !ignoreOverlapsFor.includes(timeslot._id))
+      .filter((timeslot) => !ignoreOverlapsFor.includes(timeslot.id))
       .find((timeslot) =>
         areIntervalsOverlapping(inputInterval, {
           start: new Date(timeslot.start),
@@ -275,14 +242,14 @@ export default function Day({
       );
 
     if (overlaps) {
-      return "OVERLAPS ERROR";
+      return 'OVERLAPS ERROR';
     }
     return null;
   };
 
   useEffect(() => {
     if (editTimeslotId === null) {
-      createTimeslotInput.current.focus();
+      createTimeslotInput.current?.focus();
     }
   }, [editTimeslotId]);
 
@@ -291,18 +258,40 @@ export default function Day({
       .slice()
       .map((timeslot) => ({
         ...timeslot,
-        start: parseISODate(timeslot.start),
-        end: parseISODate(timeslot.end),
+        start: new Date(timeslot.start),
+        end: new Date(timeslot.end),
       }))
       .sort((a, b) => a.start.getTime() - b.end.getTime());
   }, [timeslots]);
 
+  /*
+  padding: 0.75rem 1rem 1rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #282c34;
+  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
+  & + & {
+    margin-top: 0.5rem;
+  }
+  */
+  /*
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+ */
+
+  /*
+  display: block;
+  margin-left: 1rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  border: 1px dashed #282c34;
+  */
   return (
-    <DayContainer key={date}>
-      <DayHeader>
-        <DayTitle>{formatEntryHeading(date)}</DayTitle>
-        <SummaryContainer>
-          <Summary>
+    <div className="p-4 pt-3 rounded-md border-slate-950 shadow-lg">
+      <div className="flex justify-between items-baseline">
+        <h2>{formatEntryHeading(date)}</h2>
+        <div className="flex">
+          <div className="ml-4 py-1 px-2 rounded-md border border-dashed border-slate-950">
             {formatTimeslot(
               getTimeslotsSum(
                 orderedTimeslots.filter(
@@ -310,66 +299,67 @@ export default function Day({
                 )
               )
             )}
-          </Summary>
+          </div>
           {timeslots.length > 0 && (
-            <Summary>
+            <div className="ml-4 py-1 px-2 rounded-md border border-dashed border-slate-950">
               {calcEndTime(
                 orderedTimeslots,
                 timestamp,
                 defaultLunchDuration,
                 workWeekHours
               )}
-            </Summary>
+            </div>
           )}
-        </SummaryContainer>
-      </DayHeader>
+        </div>
+      </div>
       {orderedTimeslots.map((timeslot, index, collection) => (
-        <EntryContainer key={timeslot._id}>
+        <div key={timeslot.id} className="relative mt-2">
           <EntryRow
-            key={`${timeslot._id}-${timeslot.start}-${timeslot.end}-${timeslot.activity}`}
-            onSave={(values) => handleOnUpdateTimeslot(timeslot._id, values)}
+            key={`${timeslot.id}-${timeslot.start}-${timeslot.end}-${timeslot.description}`}
+            onSave={(values) => handleOnUpdateTimeslot(timeslot.id, values)}
             validate={(values) =>
               validateTimeslotInput(values, {
-                ignoreOverlapsFor: [timeslot._id],
+                ignoreOverlapsFor: [timeslot.id],
               })
             }
             defaultStart={formatTime(timeslot.start)}
             defaultEnd={formatTime(timeslot.end)}
-            defaultActivity={timeslot.activity}
+            defaultActivity={timeslot.description}
           >
             {(hasSaveButton) => (
               <>
                 {!hasSaveButton &&
                   !isLunchTimeslot(timeslot) &&
                   isLastInstanceOfActivity(timeslot, collection) && (
-                    <ActivityTotalTime>
+                    <div className="absolute text-sm right-0 top-0">
                       (
                       {getTotalTimeForActivity(
-                        timeslot.activity,
+                        timeslot.description,
                         collection
                       ).toFixed(2)}
                       )
-                    </ActivityTotalTime>
+                    </div>
                   )}
+
                 <EntryControls
-                  onEdit={() => setEditTimeslotId(timeslot._id)}
-                  onDelete={() => handleOnDeleteTimeslot(timeslot._id)}
+                  onEdit={() => setEditTimeslotId(timeslot.id)}
+                  onDelete={() => handleOnDeleteTimeslot(timeslot.id)}
                   hidden={hasSaveButton}
                 />
               </>
             )}
           </EntryRow>
-        </EntryContainer>
+        </div>
       ))}
       {!editTimeslotId && (
-        <EntryContainer>
+        <div className="relative mt-2 group">
           <EntryRow
             ref={createTimeslotInput}
             onSave={handleOnCreateTimeslot}
             validate={validateTimeslotInput}
           />
-        </EntryContainer>
+        </div>
       )}
-    </DayContainer>
+    </div>
   );
 }

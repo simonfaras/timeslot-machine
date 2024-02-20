@@ -1,98 +1,85 @@
-import React from "react";
-import styled from "styled-components";
-import format from "date-fns/format";
-import { useCreatePeriod } from "@/graphql/mutations/periodMutations";
-import parseISODate from "date-fns/parseISO";
+'use client';
+import { useAllPeriods, useCreatePeriod } from '@/data/queries';
+import { useParams, useRouter } from 'next/navigation';
+import React from 'react';
 
-const PeriodSelectWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-`;
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium' }).format(date);
 
-interface Period {
-  id: string;
-  days: Date[];
-}
+const NEW_PERIOD_TITLE = '[ny]';
 
-interface PeriodsSelectProps {
-  activePeriodId?: string;
-  periods: Period[];
-  onSelect: (id: string) => void;
-  onCreate: (id: string) => void;
-}
-
-const formatDate = (date) => format(date, "yyyy-MM-dd");
-
-const NEW_PERIOD_TITLE = "[ny]";
-
-const getPeriodTitle = (period: Period) => {
-  if (!period.days.length) {
+const getPeriodTitle = (period: { days: Date[] }): string => {
+  const [first, last] = [period.days.at(0), period.days.at(-1)];
+  if (!first) {
     return NEW_PERIOD_TITLE;
   }
 
-  if (period.days.length === 1) {
-    return period.days[0];
+  if (!last) {
+    return formatDate(first);
   }
 
-  return `${period.days[0]} -- ${period.days.pop()}`;
+  return `${formatDate(first)}) -- ${last}`;
 };
 
-const formatPeriodDays = (days) =>
-  days
-    .slice()
-    .sort((a, b) => a.getTime() - b.getTime())
-    .map(formatDate);
+export default function PeriodSelect() {
+  const router = useRouter();
+  const { period: activePeriodId } = useParams<{ period?: string }>();
+  const periodsQuery = useAllPeriods();
+  const createPeriod = useCreatePeriod({
+    onSuccess: (period) => {
+      setPeriod(period.id);
+    },
+  });
 
-export default function PeriodSelect({
-  activePeriodId,
-  periods: periodsRaw,
-  onSelect,
-  onCreate,
-}: PeriodsSelectProps) {
-  const createPeriod = useCreatePeriod({ onDone: onCreate });
+  const setPeriod = (id: string) => {
+    router.replace(`/${id}`);
+  };
 
-  const periods = periodsRaw
-    .slice()
-    .map((period) => {
-      const days = formatPeriodDays(period.days);
-      return {
-        ...period,
-        days,
-        sortIndex:
-          days.length === 0
-            ? Number.MAX_SAFE_INTEGER
-            : parseISODate(days[0]).getTime(),
-      };
-    })
-    .map((period) => ({
-      ...period,
-      title: getPeriodTitle(period),
-    }))
-    .sort((a, b) => a.sortIndex - b.sortIndex);
+  if (periodsQuery.isLoading) {
+    return <div>Laddar...</div>;
+  }
 
-  const newPeriod = periods.find((period) => period.title === NEW_PERIOD_TITLE);
+  // TODO Fix a loader here
+
+  const periods =
+    periodsQuery.data
+      ?.slice()
+      .map((period) => {
+        const days = period.days
+          .map((d) => d.date)
+          .toSorted((a, b) => a.getTime() - b.getTime());
+
+        return {
+          ...period,
+          days,
+          sortIndex: days.at(0)?.getTime() ?? Number.MAX_SAFE_INTEGER,
+        };
+      })
+      .sort((a, b) => a.sortIndex - b.sortIndex) ?? [];
+
+  const newPeriod = periods.find((period) => period.days.length === 0);
 
   return (
-    <PeriodSelectWrapper>
+    <div className="flex justify-between">
       {periods.length > 0 && (
         <select
-          value={activePeriodId ?? periods[0]?.id ?? ""}
-          onChange={(e) => onSelect(e.target.value)}
+          value={activePeriodId ?? periods[0]?.id ?? ''}
+          onChange={(e) => setPeriod(e.target.value)}
         >
           {periods.map((period) => (
             <option key={period.id} value={period.id}>
-              {period.title}
+              {getPeriodTitle(period)}
             </option>
           ))}
         </select>
       )}
       {newPeriod && activePeriodId !== newPeriod.id ? (
-        <button onClick={() => onSelect(newPeriod.id)}>Gå till senaste</button>
+        <button onClick={() => setPeriod(newPeriod.id)}>Gå till senaste</button>
       ) : (
-        <button onClick={() => createPeriod()} disabled={!!newPeriod}>
+        <button onClick={() => createPeriod.mutate()} disabled={!!newPeriod}>
           Skapa ny period
         </button>
       )}
-    </PeriodSelectWrapper>
+    </div>
   );
 }

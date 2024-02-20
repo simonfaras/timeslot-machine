@@ -4,34 +4,14 @@ import React, {
   useRef,
   useImperativeHandle,
   forwardRef,
-} from "react";
-import styled from "styled-components";
-
-const TimeInputWrapper = styled.div`
-  display: flex;
-`;
-
-const Input = styled.input`
-  font-variant-numeric: tabular-nums;
-  padding: 0;
-  color: #000;
-  width: 2ch;
-  font-size: 1rem;
-  border: none;
-  background-color: transparent;
-  &:disabled {
-    color: #000;
-  }
-  &:focus {
-    outline: none;
-  }
-`;
+} from 'react';
 
 const HOURS_EXPRESSION = /^([0-2]|[0-1][0-9]|2[0-3])$/i;
 const MINUTES_EXPRESSION = /^([0-5]|[0-5][0-9])$/i;
 const TIME_EXPRESION = /^\d{2}:\d{2}$/i;
 
-const isValidInput = (value, regExp) => value === "" || regExp.test(value);
+const isValidInput = (value: string, regExp: RegExp) =>
+  value === '' || regExp.test(value);
 
 interface TimeInputProps {
   value?: string;
@@ -39,14 +19,15 @@ interface TimeInputProps {
   disabled?: boolean;
 }
 
-interface TimeInputRef {
+export interface TimeInputRef {
   focus: () => void;
+  clear: () => void;
 }
 
-const EMPTY_VALUE = "";
+const EMPTY_VALUE = '';
 
 const parseValue = (value: string) => {
-  const [hours, minutes] = value.split(":");
+  const [hours, minutes] = value.split(':');
 
   return [
     hours?.length ? hours : EMPTY_VALUE,
@@ -55,22 +36,22 @@ const parseValue = (value: string) => {
 };
 
 const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
-  ({ value = "", onChange, disabled = false }: TimeInputProps, ref) => {
+  ({ value = '', onChange, disabled = false }: TimeInputProps, ref) => {
     const [hoursValue, minutesValue] = parseValue(value);
 
-    const hoursInput = useRef(null);
-    const minutesInput = useRef(null);
+    const hoursInput = useRef<HTMLInputElement>(null);
+    const minutesInput = useRef<HTMLInputElement>(null);
     const [hours, setHours] = useState(hoursValue);
     const [minutes, setMinutes] = useState(minutesValue);
 
     const isDirty = hours !== hoursValue || minutes !== minutesValue;
 
     useImperativeHandle(ref, () => ({
-      focus: () => hoursInput.current.focus(),
+      focus: () => hoursInput.current?.focus(),
       clear: () => {
         setHours(EMPTY_VALUE);
         setMinutes(EMPTY_VALUE);
-        onChange("");
+        onChange('');
       },
     }));
 
@@ -97,17 +78,21 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
       setMinutes(minutesValue);
     }, [hoursValue, minutesValue, setHours, setMinutes]);
 
-    const handleHoursChange = (e) => {
+    const handleHoursChange: React.ChangeEventHandler<HTMLInputElement> = (
+      e
+    ) => {
       const value = e.target.value;
       if (isValidInput(value, HOURS_EXPRESSION)) {
         setHours(value);
         if (value.length === 2) {
-          minutesInput.current.focus();
+          minutesInput.current?.focus();
         }
       }
     };
 
-    const handleMinutesChange = (e) => {
+    const handleMinutesChange: React.ChangeEventHandler<HTMLInputElement> = (
+      e
+    ) => {
       const value = e.target.value;
       if (isValidInput(value, MINUTES_EXPRESSION)) {
         setMinutes(value);
@@ -119,33 +104,35 @@ const TimeInput = forwardRef<TimeInputRef, TimeInputProps>(
     };
 
     return (
-      <TimeInputWrapper>
-        <Input
+      <div className="flex">
+        <input
           type="text"
           placeholder="hh"
-          size="2"
+          size={2}
           disabled={disabled}
           value={hours}
           onChange={handleHoursChange}
           onFocus={handleFocus}
           ref={hoursInput}
+          className="tabular-nums p-0 text-black w-[2ch] text-base border-none bg-transparent disabled:text-black focus:outline-none"
         />
         <span>:</span>
-        <Input
+        <input
           type="text"
           placeholder="mm"
-          size="2"
+          size={2}
           disabled={disabled}
           value={minutes}
           onChange={handleMinutesChange}
           onFocus={handleFocus}
           ref={minutesInput}
+          className="tabular-nums p-0 text-black w-[2ch] text-base border-none bg-transparent disabled:text-black focus:outline-none"
         />
-      </TimeInputWrapper>
+      </div>
     );
   }
 );
 
-TimeInput.displayName = "TimeInput";
+TimeInput.displayName = 'TimeInput';
 
 export default TimeInput;

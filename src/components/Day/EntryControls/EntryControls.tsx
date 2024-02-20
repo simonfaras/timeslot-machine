@@ -1,5 +1,4 @@
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
 
 interface EntryControlsProps {
   onEdit: () => void;
@@ -7,30 +6,17 @@ interface EntryControlsProps {
   hidden?: boolean;
 }
 
-export const EntryControlsContainer = styled.div`
-  position: absolute;
-  top: 0;
-  right: -20px;
-  display: flex;
-  visibility: hidden;
-`;
-
-const EntryControl = styled.div`
-  height: 1rem;
-  width: 1rem;
-  margin-left: 0.5rem;
-  cursor: pointer;
-`;
-
 export default function EntryControls({
   onDelete,
   hidden,
 }: EntryControlsProps) {
   return (
     !hidden && (
-      <EntryControlsContainer>
-        <EntryControl onClick={() => onDelete()}>×</EntryControl>
-      </EntryControlsContainer>
+      <div className="absolute top-0 -right-5 flex invisible">
+        <button className="size-4 ml-2" onClick={() => onDelete()}>
+          ×
+        </button>
+      </div>
     )
   );
 }

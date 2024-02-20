@@ -1,4 +1,3 @@
-import EntryControls, { EntryControlsContainer } from "./EntryControls";
+import EntryControls from './EntryControls';
 
-export { EntryControlsContainer };
 export default EntryControls;

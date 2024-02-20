@@ -1,35 +1,46 @@
-interface Timeslot {
+'use client';
+export interface Timeslot {
   id: string;
   start: Date;
   end: Date;
   description: string;
+  isBillable: boolean;
 }
 
-interface Day {
+export interface Day {
   id: string;
   timeslots: Timeslot[];
   date: Date;
 }
 
-interface Period {
+export interface Period {
   id: string;
   days: Day[];
 }
 
-const key = "timeslot-data";
+const key = 'timeslot-data';
 
 const getData = (): Period[] => {
-  const data = localStorage.getItem(key);
+  const data = globalThis?.localStorage?.getItem(key);
 
-  if (typeof data === "string") {
-    return JSON.parse(data);
-  }
+  const periods: Period[] = typeof data === 'string' ? JSON.parse(data) : [];
 
-  return [];
+  return periods.map((period) => ({
+    ...period,
+    days: period.days.map((day) => ({
+      ...day,
+      date: new Date(day.date),
+      timeslots: day.timeslots.map((timeslot) => ({
+        ...timeslot,
+        start: new Date(timeslot.start),
+        end: new Date(timeslot.end),
+      })),
+    })),
+  }));
 };
 
 const saveData = () => {
-  localStorage.setItem(key, JSON.stringify(saveData));
+  localStorage?.setItem(key, JSON.stringify(periods));
 };
 
 const periods: Period[] = getData();
@@ -55,27 +66,32 @@ export const createPeriod = async (): Promise<Period> => {
   return period;
 };
 
-export const createDay = async (periodId: string, date: Date): Promise<Day> => {
+export type CreateDayInput = Omit<Day, 'id' | 'timeslots'>;
+
+export const createDay = async (
+  periodId: string,
+  day: CreateDayInput
+): Promise<Day> => {
   const period = await getPeriod(periodId);
 
   if (period == null) {
-    throw new Error("Unknown period");
+    throw new Error('Unknown period');
   }
 
-  const day: Day = {
+  const newDay: Day = {
     id: crypto.randomUUID(),
     timeslots: [],
-    date,
+    ...day,
   };
 
-  period.days.push(day);
+  period.days.push(newDay);
 
   saveData();
 
-  return day;
+  return newDay;
 };
 
-type CreateTimeslotInput = Omit<Timeslot, "id">;
+export type CreateTimeslotInput = Omit<Timeslot, 'id'>;
 
 export const createTimeslot = async (
   periodId: string,
@@ -87,7 +103,7 @@ export const createTimeslot = async (
     ?.days.find((day) => day.id === dayId);
 
   if (day == null) {
-    throw new Error("Unknown day");
+    throw new Error('Unknown day');
   }
 
   const newTimeslot: Timeslot = {
@@ -103,8 +119,8 @@ export const createTimeslot = async (
 };
 
 export const updateTimeslot = async (
-  periodId,
-  dayId,
+  periodId: string,
+  dayId: string,
   timeslot: Timeslot
 ): Promise<Timeslot> => {
   const oldTimeslot = periods
@@ -113,7 +129,7 @@ export const updateTimeslot = async (
     ?.timeslots.find((t) => t.id === timeslot.id);
 
   if (oldTimeslot == null) {
-    throw new Error("Unknown timeslot");
+    throw new Error('Unknown timeslot');
   }
 
   Object.assign(oldTimeslot, timeslot);

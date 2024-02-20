@@ -3,39 +3,10 @@ import React, {
   useState,
   useRef,
   forwardRef,
-} from "react";
-import styled from "styled-components";
-import TimeInput from "./TimeInput";
+} from 'react';
+import TimeInput, { TimeInputRef } from './TimeInput';
 
-const EntryRowContainer = styled.div`
-  display: flex;
-  position: relative;
-`;
-
-const Timespan = styled.div`
-  display: flex;
-`;
-
-const TextInput = styled.input`
-  margin-left: 1rem;
-  padding: 0;
-  color: #000;
-  font-size: 1rem;
-  border: none;
-  background-color: transparent;
-  &:disabled {
-    color: #000;
-  }
-  &:focus {
-    outline: none;
-  }
-`;
-
-const SaveButton = styled.button`
-  visibility: ${({ disabled }) => (disabled ? "hidden" : "visible")};
-`;
-
-interface EntryRowRef {
+export interface EntryRowRef {
   focus: () => void;
 }
 
@@ -54,7 +25,7 @@ interface EntryRowProps {
   defaultActivity?: string;
 }
 
-const isValidTimeValue = (value) => /\d{2}:\d{2}/.test(value);
+const isValidTimeValue = (value: string) => /\d{2}:\d{2}/.test(value);
 
 const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
   (
@@ -62,15 +33,15 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
       children = () => null,
       onSave,
       validate,
-      defaultStart = "",
-      defaultEnd = "",
-      defaultActivity = "",
+      defaultStart = '',
+      defaultEnd = '',
+      defaultActivity = '',
     }: EntryRowProps,
     ref
   ) => {
-    const startInput = useRef(null);
-    const endInput = useRef(null);
-    const activityInput = useRef(null);
+    const startInput = useRef<TimeInputRef>(null);
+    const endInput = useRef<TimeInputRef>(null);
+    const activityInput = useRef<HTMLInputElement>(null);
 
     const [start, setStart] = useState(defaultStart);
     const [end, setEnd] = useState(defaultEnd);
@@ -80,7 +51,7 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
     useImperativeHandle(
       ref,
       () => ({
-        focus: () => startInput.current.focus(),
+        focus: () => startInput.current?.focus(),
       }),
       []
     );
@@ -96,7 +67,7 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
     const handleSubmit = (e) => {
       e.preventDefault();
       if (!hasRequiredInputs) {
-        setErrorMessage("MISSING INPUT");
+        setErrorMessage('MISSING INPUT');
         return;
       }
 
@@ -107,11 +78,11 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
       if (error) {
         setErrorMessage(error);
       } else {
-        setErrorMessage("");
+        setErrorMessage('');
         onSave(values);
-        startInput.current.clear();
-        endInput.current.clear();
-        setActivity("");
+        startInput.current?.clear();
+        endInput.current?.clear();
+        setActivity('');
       }
     };
 
@@ -124,8 +95,8 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
     return (
       <>
         <form onSubmit={handleSubmit}>
-          <EntryRowContainer>
-            <Timespan>
+          <div className="flex relative group-hover:visible">
+            <div className="flex">
               <TimeInput
                 onChange={(value) => {
                   setStart(value);
@@ -135,20 +106,25 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
               />
               <span>&nbsp;-&nbsp;</span>
               <TimeInput onChange={setEnd} value={end} ref={endInput} />
-            </Timespan>
-            <TextInput
+            </div>
+            <input
               type="text"
+              className="ml-4 p-0 text-black text-base border-none bg-transparent disabled:text-black focus:outline-none"
               placeholder="Aktivitet"
               value={activity}
               onChange={(e) => setActivity(e.target.value)}
               ref={activityInput}
             />
             <div>
-              <SaveButton disabled={!showSaveButton} type="submit">
+              <button
+                disabled={!showSaveButton}
+                type="submit"
+                className="disabled:invisible"
+              >
                 Spara
-              </SaveButton>
+              </button>
             </div>
-          </EntryRowContainer>
+          </div>
         </form>
         {children(showSaveButton)}
       </>
@@ -156,6 +132,6 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
   }
 );
 
-EntryRow.displayName = "EntryRow";
+EntryRow.displayName = 'EntryRow';
 
 export default EntryRow;

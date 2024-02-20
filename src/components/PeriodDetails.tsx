@@ -1,34 +1,11 @@
-import React from "react";
-import styled from "styled-components";
-import { useQuery } from "@apollo/client";
-import isSameDayDate from "date-fns/isSameDay";
+'use client';
+import React from 'react';
+import Day from '@/components/Day';
+import CreateDayInput from '@/components/CreateDayInput';
+import PeriodSummary from '@/components/PeriodSummary';
+import { usePeriod } from '@/data/queries';
 
-import { GetPeriodDocument } from "@/graphql";
-import { useUpdatePeriodSettings } from "@/graphql/mutations/periodMutations";
-import Day from "@/components/Day";
-import CreateDayInput from "@/components/CreateDayInput";
-import PeriodSettings from "@/components/PeriodSettings";
-import PeriodSummary from "@/components/PeriodSummary";
-
-const PeriodsDetailsContainer = styled.div`
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-`;
-
-const PeriodDetailsWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  gap: 1rem;
-`;
-
-const PeriodDetailsSettingsWrapper = styled.div`
-  position: absolute;
-  right: -20px;
-`;
-
-function getTimeFromDate(date) {
+function getTimeFromDate(date: Date) {
   return new Date(date).getTime();
 }
 
@@ -37,61 +14,59 @@ interface PeriodDetailsProps {
 }
 
 export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
-  const periodQuery = useQuery(GetPeriodDocument, {
-    variables: { id: periodId },
-  });
-  const updatePeriodSettings = useUpdatePeriodSettings(periodId);
+  const periodQuery = usePeriod(periodId);
 
-  if (periodQuery.loading) {
+  // const updatePeriodSettings = useUpdatePeriodSettings(periodId);
+
+  if (periodQuery.isLoading) {
     return <div>Laddar</div>;
   }
 
-  if (!periodQuery.data) {
+  if (!periodQuery.isSuccess || periodQuery.data == null) {
     return <div className="root">Hittar ingen period med id {periodId}.</div>;
   }
 
-  const {
-    workWeekHours,
-    lunchDurationMinutes,
-  } = periodQuery.data.findPeriodByID.settings;
+  // const { workWeekHours, lunchDurationMinutes } =
+  //   periodQuery.data.findPeriodByID.settings;
 
-  const orderedDays = periodQuery.data.findPeriodByID.days.data
+  const orderedDays = periodQuery.data.days
     .slice()
     .sort((a, b) => getTimeFromDate(a.date) - getTimeFromDate(b.date));
 
   return (
-    <PeriodsDetailsContainer>
-      <PeriodDetailsWrapper>
-        <PeriodDetailsSettingsWrapper>
-          <PeriodSettings
+    <div className="p-4 flex justify-center">
+      <div className="flex flex-col relative gap-4">
+        <div className="absolute -right-5">
+          {/* <PeriodSettings
             update={updatePeriodSettings}
             workWeekHours={workWeekHours}
             lunchDurationMinutes={lunchDurationMinutes}
-          />
-        </PeriodDetailsSettingsWrapper>
+          /> */}
+        </div>
         <div>
-          {orderedDays.map(({ _id, date, timeslots }) => (
+          {orderedDays.map(({ id, date, timeslots }) => (
             <Day
-              key={_id}
-              _id={_id}
+              key={id}
+              id={id}
               date={date}
-              timeslots={timeslots.data}
-              defaultLunchDuration={lunchDurationMinutes}
-              workWeekHours={workWeekHours}
+              timeslots={timeslots}
+              defaultLunchDuration={60}
+              workWeekHours={40}
             />
           ))}
         </div>
         <CreateDayInput
           periodId={periodId}
-          disabled={(date) => {
-            const dateValue = new Date(date);
-            return orderedDays.some((day) =>
-              isSameDayDate(new Date(day.date), dateValue)
-            );
-          }}
+          disabled={() => false}
+          // disabled={(date) => {
+          //   const dateValue = new Date(date);
+          //   return orderedDays.some((day) =>
+          //     isSameDayDate(new Date(day.date), dateValue)
+          //   );
+          // }}
         />
         <PeriodSummary periodId={periodId} />
-      </PeriodDetailsWrapper>
-    </PeriodsDetailsContainer>
+      </div>
+    </div>
   );
 }
