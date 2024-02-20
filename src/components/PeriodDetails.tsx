@@ -47,6 +47,7 @@ export default function PeriodDetails({ periodId }: PeriodDetailsProps) {
           {orderedDays.map(({ id, date, timeslots }) => (
             <Day
               key={id}
+              periodId={periodId}
               id={id}
               date={date}
               timeslots={timeslots}

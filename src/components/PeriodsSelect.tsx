@@ -1,10 +1,8 @@
 'use client';
 import { useAllPeriods, useCreatePeriod } from '@/data/queries';
+import { formatDate } from '@/lib/date-utils';
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium' }).format(date);
 
 const NEW_PERIOD_TITLE = '[ny]';
 
@@ -18,7 +16,7 @@ const getPeriodTitle = (period: { days: Date[] }): string => {
     return formatDate(first);
   }
 
-  return `${formatDate(first)}) -- ${last}`;
+  return `${formatDate(first)} -- ${formatDate(last)}`;
 };
 
 export default function PeriodSelect() {

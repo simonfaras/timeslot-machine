@@ -3,7 +3,11 @@ import EntryRow, { TimeslotFields } from './EntryRow';
 import EntryControls from './EntryControls';
 import { EntryRowRef } from './EntryRow/EntryRow';
 import { Timeslot } from '@/data/storage';
-import { useCreateTimeslot } from '@/data/queries';
+import {
+  useCreateTimeslot,
+  useDeleteTimeslot,
+  useUpdateTimeslot,
+} from '@/data/queries';
 
 const weekdays = [
   'Söndag',
@@ -21,6 +25,7 @@ interface TimeslotParsed extends Pick<Timeslot, 'id' | 'description'> {
 }
 
 interface DayProps {
+  periodId: string;
   id: string;
   date: Date;
   timeslots: Timeslot[];
@@ -155,6 +160,7 @@ const createTimestampParser =
 
 export default function Day({
   id,
+  periodId,
   date,
   timeslots,
   defaultLunchDuration,
@@ -164,22 +170,27 @@ export default function Day({
 
   const [editTimeslotId, setEditTimeslotId] = useState<string | null>(null);
 
-  const createTimeslot = useCreateTimeslot(id);
-  const updateTimeslot = useUpdateTimeslot(id);
-  const deleteTimeslot = useDeleteTimeslot(id);
+  const createTimeslot = useCreateTimeslot(periodId, id);
+  const updateTimeslot = useUpdateTimeslot(periodId, id);
+  const deleteTimeslot = useDeleteTimeslot(periodId, id);
 
   const createTimeslotInput = useRef<EntryRowRef>(null);
 
-  const handleOnCreateTimeslot = ({ start, end, activity }: TimeslotFields) => {
-    if (start == null || end == null) {
-      console.error('Invalid start or end', { start, end });
+  const handleOnCreateTimeslot = ({
+    start,
+    end,
+    description,
+  }: TimeslotFields) => {
+    if (start == null || end == null || description == null) {
+      console.error('Invalid input', { start, end, description });
       return;
     }
 
-    createTimeslot({
-      start: timestamp(start).toISOString(),
-      end: timestamp(end).toISOString(),
-      activity,
+    createTimeslot.mutate({
+      start: timestamp(start),
+      end: timestamp(end),
+      description,
+      isBillable: description.toLowerCase() !== 'lunch',
     });
 
     createTimeslotInput.current?.focus();
@@ -187,24 +198,34 @@ export default function Day({
 
   const handleOnUpdateTimeslot = (
     id: string,
-    { start, end, activity }: TimeslotFields
+    { start, end, description }: TimeslotFields
   ) => {
-    if (start == null || end == null) {
-      console.error('Invalid start or end', { start, end });
+    if (start == null || end == null || description == null) {
+      console.error('Invalid input', { start, end, description });
       return;
     }
 
-    updateTimeslot(id, {
-      start: timestamp(start).toISOString(),
-      end: timestamp(end).toISOString(),
-      activity,
+    const current = timeslots.find((t) => t.id === id);
+
+    if (current == null) {
+      console.error('Timeslot not found', { id });
+      return;
+    }
+
+    updateTimeslot.mutate({
+      ...current,
+      id,
+      start: timestamp(start),
+      end: timestamp(end),
+      description,
+      isBillable: description.toLowerCase() === 'lunch',
     });
 
     createTimeslotInput.current?.focus();
   };
 
   const handleOnDeleteTimeslot = (id: string) => {
-    deleteTimeslot(id);
+    deleteTimeslot.mutate(id);
   };
 
   const validateTimeslotInput = (
@@ -225,10 +246,12 @@ export default function Day({
       inputInterval.end.getTime() - inputInterval.start.getTime();
 
     if (duration === 0) {
+      console.log(start, end);
       return 'SAME DATE ERROR';
     }
 
     if (duration < 0) {
+      console.log(start, end);
       return 'END BEFORE START ERROR';
     }
 
@@ -242,6 +265,7 @@ export default function Day({
       );
 
     if (overlaps) {
+      console.log(start, end);
       return 'OVERLAPS ERROR';
     }
     return null;
@@ -324,7 +348,7 @@ export default function Day({
             }
             defaultStart={formatTime(timeslot.start)}
             defaultEnd={formatTime(timeslot.end)}
-            defaultActivity={timeslot.description}
+            defaultDescription={timeslot.description}
           >
             {(hasSaveButton) => (
               <>

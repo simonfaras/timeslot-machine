@@ -138,3 +138,25 @@ export const updateTimeslot = async (
 
   return timeslot;
 };
+
+export const deleteTimeslot = async (
+  periodId: string,
+  dayId: string,
+  timeslotId: string
+) => {
+  const day = periods
+    ?.find((period) => period.id === periodId)
+    ?.days.find((day) => day.id === dayId);
+
+  const index = day?.timeslots.findIndex((t) => t.id === timeslotId);
+
+  if (index == null) {
+    throw new Error('Unknown timeslot');
+  }
+
+  const [removed] = day?.timeslots.splice(index, 1) ?? [];
+
+  saveData();
+
+  return removed;
+};

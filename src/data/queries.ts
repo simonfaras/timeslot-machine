@@ -3,11 +3,14 @@ import {
   CreateDayInput,
   CreateTimeslotInput,
   Period,
+  Timeslot,
   createDay,
   createPeriod,
   createTimeslot,
+  deleteTimeslot,
   getAllPeriods,
   getPeriod,
+  updateTimeslot,
 } from './storage';
 
 const keys = {
@@ -31,6 +34,14 @@ export const usePeriod = (periodId: string) => {
   });
 };
 
+const useInvalidatePeriod = (periodId: string) => {
+  const client = useQueryClient();
+
+  return () => {
+    client.invalidateQueries(keys.period(periodId));
+  };
+};
+
 type CreatePeriodOptions = {
   onSuccess?: (period: Period) => void;
 };
@@ -48,18 +59,40 @@ export const useCreatePeriod = (options: CreatePeriodOptions) => {
 };
 
 export const useCreateDay = (periodId: string) => {
+  const refresh = useInvalidatePeriod(periodId);
+
   return useMutation({
     mutationFn: (day: CreateDayInput) => createDay(periodId, day),
+    onSuccess: refresh,
   });
 };
 
 export const useCreateTimeslot = (periodId: string, dayId: string) => {
+  const refresh = useInvalidatePeriod(periodId);
+
   return useMutation({
     mutationFn: (timeslot: CreateTimeslotInput) =>
       createTimeslot(periodId, dayId, timeslot),
+    onSuccess: refresh,
   });
 };
 
-export const useUpdateTimeslot = () => {};
+export const useUpdateTimeslot = (periodId: string, dayId: string) => {
+  const refresh = useInvalidatePeriod(periodId);
 
-export const useDeleteTimeslot = () => {};
+  return useMutation({
+    mutationFn: (timeslot: Timeslot) =>
+      updateTimeslot(periodId, dayId, timeslot),
+    onSuccess: refresh,
+  });
+};
+
+export const useDeleteTimeslot = (periodId: string, dayId: string) => {
+  const refresh = useInvalidatePeriod(periodId);
+
+  return useMutation({
+    mutationFn: (timeslotId: string) =>
+      deleteTimeslot(periodId, dayId, timeslotId),
+    onSuccess: refresh,
+  });
+};

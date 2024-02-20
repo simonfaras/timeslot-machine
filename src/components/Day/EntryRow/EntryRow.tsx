@@ -13,7 +13,7 @@ export interface EntryRowRef {
 export interface TimeslotFields {
   start?: string;
   end?: string;
-  activity?: string;
+  description?: string;
 }
 
 interface EntryRowProps {
@@ -22,7 +22,7 @@ interface EntryRowProps {
   validate(values: TimeslotFields): string | null;
   defaultStart?: string;
   defaultEnd?: string;
-  defaultActivity?: string;
+  defaultDescription?: string;
 }
 
 const isValidTimeValue = (value: string) => /\d{2}:\d{2}/.test(value);
@@ -35,17 +35,17 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
       validate,
       defaultStart = '',
       defaultEnd = '',
-      defaultActivity = '',
+      defaultDescription = '',
     }: EntryRowProps,
     ref
   ) => {
     const startInput = useRef<TimeInputRef>(null);
     const endInput = useRef<TimeInputRef>(null);
-    const activityInput = useRef<HTMLInputElement>(null);
+    const descriptionInput = useRef<HTMLInputElement>(null);
 
     const [start, setStart] = useState(defaultStart);
     const [end, setEnd] = useState(defaultEnd);
-    const [activity, setActivity] = useState(defaultActivity);
+    const [description, setDescription] = useState(defaultDescription);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useImperativeHandle(
@@ -59,10 +59,10 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
     const isDirty =
       start !== defaultStart ||
       end !== defaultEnd ||
-      activity !== defaultActivity;
+      description !== defaultDescription;
 
     const hasRequiredInputs =
-      isValidTimeValue(start) && isValidTimeValue(end) && activity;
+      isValidTimeValue(start) && isValidTimeValue(end) && description != null;
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -71,7 +71,7 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
         return;
       }
 
-      const values = { start, end, activity };
+      const values = { start, end, description };
 
       const error = validate(values);
 
@@ -82,7 +82,7 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
         onSave(values);
         startInput.current?.clear();
         endInput.current?.clear();
-        setActivity('');
+        setDescription('');
       }
     };
 
@@ -111,9 +111,9 @@ const EntryRow = forwardRef<EntryRowRef, EntryRowProps>(
               type="text"
               className="ml-4 p-0 text-black text-base border-none bg-transparent disabled:text-black focus:outline-none"
               placeholder="Aktivitet"
-              value={activity}
-              onChange={(e) => setActivity(e.target.value)}
-              ref={activityInput}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              ref={descriptionInput}
             />
             <div>
               <button
