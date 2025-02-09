@@ -8,6 +8,8 @@ import {
   useDeleteTimeslot,
   useUpdateTimeslot,
 } from '@/data/queries';
+import { areIntervalsOverlapping } from '@/lib/date-utils';
+import { log } from 'console';
 
 const weekdays = [
   'Söndag',
@@ -32,15 +34,6 @@ interface DayProps {
   defaultLunchDuration: number;
   workWeekHours: number;
 }
-
-type Interval = {
-  start: Date;
-  end: Date;
-};
-
-const areIntervalsOverlapping = (a: Interval, b: Interval): boolean => {
-  return b.start.getTime() < a.end.getTime();
-};
 
 const addMinutes = (date: Date, minutes: number) =>
   new Date(date.getTime() + minutes * 60 * 1000);
@@ -265,7 +258,6 @@ export default function Day({
       );
 
     if (overlaps) {
-      console.log(start, end);
       return 'OVERLAPS ERROR';
     }
     return null;
@@ -277,39 +269,15 @@ export default function Day({
     }
   }, [editTimeslotId]);
 
-  const orderedTimeslots = useMemo(() => {
-    return timeslots
-      .slice()
-      .map((timeslot) => ({
-        ...timeslot,
-        start: new Date(timeslot.start),
-        end: new Date(timeslot.end),
-      }))
-      .sort((a, b) => a.start.getTime() - b.end.getTime());
-  }, [timeslots]);
+  const orderedTimeslots = timeslots
+    .slice()
+    .map((timeslot) => ({
+      ...timeslot,
+      start: new Date(timeslot.start),
+      end: new Date(timeslot.end),
+    }))
+    .sort((a, b) => a.start.getTime() - b.end.getTime());
 
-  /*
-  padding: 0.75rem 1rem 1rem 1rem;
-  border-radius: 4px;
-  border: 1px solid #282c34;
-  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
-  & + & {
-    margin-top: 0.5rem;
-  }
-  */
-  /*
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
- */
-
-  /*
-  display: block;
-  margin-left: 1rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 5px;
-  border: 1px dashed #282c34;
-  */
   return (
     <div className="p-4 pt-3 rounded-md border-slate-950 shadow-lg">
       <div className="flex justify-between items-baseline">

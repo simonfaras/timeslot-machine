@@ -40,17 +40,20 @@ const getData = (): Period[] => {
 };
 
 const saveData = () => {
+  console.log('SAVE DATA', periods);
   localStorage?.setItem(key, JSON.stringify(periods));
 };
 
 const periods: Period[] = getData();
 
 export const getPeriod = async (id: string): Promise<Period | null> => {
-  return periods.find((period) => period.id === id) ?? null;
+  const period = periods.find((period) => period.id === id);
+
+  return period != null ? { ...period } : null;
 };
 
 export const getAllPeriods = async (): Promise<Period[]> => {
-  return periods;
+  return [...periods];
 };
 
 export const createPeriod = async (): Promise<Period> => {
@@ -63,7 +66,7 @@ export const createPeriod = async (): Promise<Period> => {
 
   saveData();
 
-  return period;
+  return { ...period };
 };
 
 export type CreateDayInput = Omit<Day, 'id' | 'timeslots'>;
@@ -136,7 +139,7 @@ export const updateTimeslot = async (
 
   saveData();
 
-  return timeslot;
+  return { ...timeslot };
 };
 
 export const deleteTimeslot = async (

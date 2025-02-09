@@ -15,7 +15,7 @@ import {
 
 const keys = {
   all: ['all'],
-  periods: () => [keys.all, 'periods'],
+  periods: () => [...keys.all, 'periods'],
   period: (id: string) => [...keys.periods(), { id }],
   day: (id: string) => [...keys.all, 'day', { id }],
 };
